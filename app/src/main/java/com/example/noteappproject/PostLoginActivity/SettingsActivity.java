@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.noteappproject.AdvancedFunction.TrashBinActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.ReLoginActivity.ChangePasswordActivity;
 import com.example.noteappproject.ReLoginActivity.MainActivity;
@@ -61,8 +62,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 startActivity(new Intent(this, ProfileActivity.class));
                 break;
             case R.id.trashBinList :
-                // chuyển qua màn hình thùng rác với dữ liệu là những note đã bị xóa
-//                startActivity(new Intent(this, TrashBinActivity.class));
+                // chuyển vào screen thùng rác chứa những note bị xóa nhưng chưa xóa hẳn
+                startActivity(new Intent(this, TrashBinActivity.class));
                 break;
             case R.id.changeFontTextView :
                 Toast.makeText(this, "change Font", Toast.LENGTH_SHORT).show();

@@ -14,6 +14,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,11 +23,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,20 +55,22 @@ import java.util.regex.Pattern;
 
 public class AddNoteActivity extends AppCompatActivity implements View.OnClickListener{
     private EditText label, subtitle, textContent;
-    private ImageView imageBack, imageSave;
+    private ImageView imageBack, imageSave, imageNote;
     private TextView textDateTime;
     private View viewSubtitleIndicator;
-    private ImageView imageNote;
     private TextView textWebURL;
     private LinearLayout layoutWebURL;;
     private AlertDialog dialogURL;
-
-    private String selectedNoteColor;
-    private String selectedImagePath;
+    private VideoView videoView;
+    private String selectedNoteColor, selectedImagePath, selectedVideoPath;
+    private FrameLayout layoutAddVideo;
 
     public static final int ADD_NOTE = 4;
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 2;
-    private static final int REQUEST_CODE_SELECT_IMAGE = 3;
+    private static final int REQUEST_CODE_STORAGE_VIDEO_PERMISSION = 3;
+
+    private static final int REQUEST_CODE_SELECT_IMAGE = 4;
+    private static final int REQUEST_CODE_SELECT_VIDEO = 5;
 
     private FirebaseAuth mAuth;
     private FirebaseDatabase rootNode;
@@ -93,6 +99,7 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
 
         textWebURL = findViewById(R.id.textWebURL);
         layoutWebURL = findViewById(R.id.layoutWebURL);
+        layoutAddVideo = findViewById(R.id.layoutAddVideo);
 
         imageNote = findViewById(R.id.imageNote);
         imageBack = findViewById(R.id.imageBack);
@@ -100,8 +107,11 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         imageSave = findViewById(R.id.imageSave);
         imageSave.setOnClickListener(this);
 
+        videoView = findViewById(R.id.videoView);
+
         selectedNoteColor = "#333333";
         selectedImagePath = "";
+        selectedVideoPath = "";
 
         findViewById(R.id.imageRemoveWebURL).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,6 +128,16 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                 imageNote.setVisibility(View.GONE);
                 findViewById(R.id.imageRemoveImage).setVisibility(View.GONE);
                 selectedImagePath = "";
+            }
+        });
+
+        findViewById(R.id.imageRemoveVideo).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                videoView.setVideoURI(null);
+                layoutAddVideo.setVisibility(View.GONE);
+                findViewById(R.id.imageRemoveVideo).setVisibility(View.GONE);
+                selectedVideoPath = "";
             }
         });
 
@@ -288,6 +308,28 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
 
+        layoutMiscellaneous.findViewById(R.id.layoutAddVideo).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(AddNoteActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            REQUEST_CODE_STORAGE_VIDEO_PERMISSION);
+                }
+                else {
+                    selectVideo();
+                }
+            }
+        });
+
+        layoutMiscellaneous.findViewById(R.id.layoutAddVoice).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                addVoice();
+            }
+        });
     }
 
     private void setSubtitleIndicator() {
@@ -313,6 +355,14 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
             }
         }
+        else if (requestCode == REQUEST_CODE_STORAGE_VIDEO_PERMISSION && grantResults.length > 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                selectVideo();
+            } else {
+                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+
     }
 
     @Override
@@ -329,7 +379,7 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                         imageNote.setVisibility(View.VISIBLE);
                         findViewById(R.id.imageRemoveImage).setVisibility(View.VISIBLE);
 
-                        selectedImagePath = getPathFromUri(selectedImageUri);
+                        selectedImagePath = getImagePathFromUri(selectedImageUri);
 
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -337,9 +387,50 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                 }
             }
         }
+        else if (requestCode == REQUEST_CODE_SELECT_VIDEO && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri selectedVideoUri = data.getData();
+                if (selectedVideoUri != null) {
+                    try {
+                        layoutAddVideo.setVisibility(View.VISIBLE);
+                        videoView.setVisibility(View.VISIBLE);
+                        findViewById(R.id.imageRemoveVideo).setVisibility(View.VISIBLE);
+
+                        selectedVideoPath = getVideoPathFromUri(selectedVideoUri);
+//                Uri uri = Uri.parse(selectedVideoPath);
+//                videoView.setVideoURI(uri);
+
+                        videoView.setVideoPath(selectedVideoPath);
+
+                        MediaController mediaController  = new MediaController(this);
+                        mediaController.setAnchorView(videoView);
+                        videoView.setMediaController(mediaController);
+                        videoView.start();
+                    }
+                    catch (Exception e) {
+                        Toast.makeText(AddNoteActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
     }
 
-    private String getPathFromUri(Uri contentUri) {
+    private String getImagePathFromUri(Uri contentUri) {
+        String filePath;
+        Cursor cursor = getContentResolver()
+                .query(contentUri, null, null, null, null);
+        if (cursor == null) {
+            filePath = contentUri.getPath();
+        } else {
+            cursor.moveToFirst();
+            int index = cursor.getColumnIndex("_data");
+            filePath = cursor.getString(index);
+            cursor.close();
+        }
+        return filePath;
+    }
+
+    private String getVideoPathFromUri(Uri contentUri) {
         String filePath;
         Cursor cursor = getContentResolver()
                 .query(contentUri, null, null, null, null);
@@ -392,6 +483,14 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         dialogURL.show();
     }
 
-    private void removeImage() {
+    private void selectVideo() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_CODE_SELECT_VIDEO);
+        }
+    }
+
+    private void addVoice() {
+        Toast.makeText(AddNoteActivity.this, "This function is developing", Toast.LENGTH_SHORT).show();
     }
 }

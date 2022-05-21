@@ -224,5 +224,32 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/layoutAddVoice"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_voice"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:includeFontPadding="false"
+            android:text="Add Voice"
+            android:textColor="@color/white"
+            android:textSize="12sp"/>
+
+    </LinearLayout>
 
 </LinearLayout>

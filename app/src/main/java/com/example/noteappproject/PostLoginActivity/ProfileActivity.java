@@ -21,7 +21,6 @@ import com.google.firebase.database.ValueEventListener;
 public class ProfileActivity extends AppCompatActivity {
 
     private ActivityProfileBinding binding;
-
     private FirebaseUser user;
     private DatabaseReference reference;
 
@@ -59,6 +58,33 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(ProfileActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        this.binding.imageEditName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.fullName.setEnabled(true);
+                binding.confirmBtn.setEnabled(true);
+            }
+        });
+
+        this.binding.confirmBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String fullNameValue = binding.fullName.getText().toString().trim();
+                reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        snapshot.getRef().child("fullName").setValue(fullNameValue);
+                        Toast.makeText(ProfileActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
             }
         });
     }
