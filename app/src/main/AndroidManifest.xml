@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.noteappproject">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Design.Light.NoActionBar"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".AdvancedFunction.TrashBinActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PostLoginActivity.UpdateActivity"
+            android:exported="false"
+            />
+        <activity
+            android:name=".PostLoginActivity.AddNoteActivity"
+            android:exported="false"
+            />
+        <activity
+            android:name=".PostLoginActivity.NoteActivity"
+            android:exported="false"
+            android:label="Note"
+            android:theme="@style/Theme.Design.Light" />
+        <activity
+            android:name=".ReLoginActivity.ForgotPassword"
+            android:exported="false" />
+        <activity
+            android:name=".PostLoginActivity.ProfileActivity"
+            android:exported="false"
+            android:label="Profile"
+            android:parentActivityName=".PostLoginActivity.SettingsActivity"
+            android:theme="@style/Theme.Design.Light" />
+        <activity
+            android:name=".ReLoginActivity.RegisterUser"
+            android:exported="false" />
+        <activity
+            android:name=".ReLoginActivity.SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ReLoginActivity.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PostLoginActivity.SettingsActivity"
+            android:exported="false"
+            android:label="Settings"
+            android:parentActivityName=".PostLoginActivity.NoteActivity"
+            android:theme="@style/Theme.Design.Light" />
+        <activity
+            android:name=".ReLoginActivity.ChangePasswordActivity"
+            android:exported="false"
+            android:label="Change Password"
+            android:parentActivityName=".PostLoginActivity.SettingsActivity"
+            android:theme="@style/Theme.Design.Light" />
+    </application>
+
+    <queries>
+
+        <intent>
+            <action android:name="android.intent.action.PICK" />
+            <data android:mimeType="image/*" />
+        </intent>
+
+    </queries>
+</manifest>

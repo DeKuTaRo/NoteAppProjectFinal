@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable-v24/bg_search_note.xml" value="0.1585" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable-v24/ic_lock.xml" value="0.1165" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable-v24/ic_pin.xml" value="0.129" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable-v24/ic_update.xml" value="0.129" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_add_button.xml" value="0.1245" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_delete.xml" value="0.109" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_dialog.xml" value="0.1" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_miscellaneous.xml" value="0.1885" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_note_color_1.xml" value="0.182" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_note_color_2.xml" value="0.182" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_note_color_3.xml" value="0.182" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_note_color_4.xml" value="0.182" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_note_color_5.xml" value="0.182" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/background_subtitle_indicator.xml" value="0.2005" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/ic_back.xml" value="0.2005" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/ic_check.xml" value="0.182" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/ic_lock_person.xml" value="0.129" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/drawable/ic_save.xml" value="0.2005" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_add_note.xml" value="0.264" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_grid_view_item_note_item.xml" value="0.25" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_list_view_item_note_item.xml" value="0.24230072463768115" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_main.xml" value="0.24635416666666668" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_note.xml" value="0.2" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_note_grid_view.xml" value="0.24230072463768115" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_recycler_view_item_note_item.xml" value="0.20923913043478262" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/activity_update.xml" value="0.24635416666666668" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/layout_add_url.xml" value="0.264" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/layout_miscellaneous.xml" value="0.264" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/layout/layout_password_note.xml" value="0.264" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/menu/my_menu.xml" value="0.24635416666666668" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/menu/my_menu_note.xml" value="0.24635416666666668" />
+        <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/menu/my_menu_update_note.xml" value="0.24635416666666668" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

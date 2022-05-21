@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".PostLoginActivity.SettingsActivity">
+
+    <TextView
+        android:id="@+id/profileTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Profile"
+        android:background="@drawable/bg_search_note"
+        android:paddingStart="10dp"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        />
+
+    <TextView
+        android:id="@+id/trashBinList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Trash Bin"
+        android:background="@drawable/bg_search_note"
+        android:paddingStart="10dp"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:drawableStartCompat="@drawable/ic_delete"
+        tools:ignore="RtlSymmetry" />
+
+    <TextView
+        android:id="@+id/changeFontTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Settings font-size and font-style"
+        android:background="@drawable/bg_search_note"
+        android:paddingStart="10dp"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        />
+
+
+    <TextView
+        android:id="@+id/timeSettingTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Settings time for note in trash bin"
+        android:background="@drawable/bg_search_note"
+        android:paddingStart="10dp"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        />
+
+    <TextView
+        android:id="@+id/volumeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Change volume for note"
+        android:background="@drawable/bg_search_note"
+        android:paddingStart="10dp"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        />
+
+    <Button
+        android:id="@+id/changePassBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Change password"/>
+
+    <Button
+        android:id="@+id/logoutBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Logout"/>
+
+</LinearLayout>
