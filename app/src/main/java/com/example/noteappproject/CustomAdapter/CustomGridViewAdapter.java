@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.PostLoginActivity.NoteActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityGridViewItemNoteItemBinding;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -92,18 +94,22 @@ public class CustomGridViewAdapter extends RecyclerView.Adapter<CustomGridViewAd
                 this.binding.mainCardView.setCardBackgroundColor(Color.parseColor("#333333"));
             }
 
-            if (noteItem.getPasswordNote().isEmpty()) {
+            if (noteItem.getPasswordNote().trim().isEmpty()) {
                 this.binding.imageViewPassword.setImageResource(0);
             } else {
                 this.binding.imageViewPassword.setImageResource(R.drawable.ic_lock);
             }
 
-            if (noteItem.getImagePath() != null) {
-                this.binding.imageNote.setImageBitmap(BitmapFactory.decodeFile(noteItem.getImagePath()));
-                this.binding.imageNote.setVisibility(View.VISIBLE);
-            } else {
+            if (noteItem.getImagePath() == null || noteItem.getImagePath().trim().isEmpty()) {
                 this.binding.imageNote.setVisibility(View.GONE);
+                Picasso.get().load((Uri) null)
+                        .into(binding.imageNote);
+            } else {
+                this.binding.imageNote.setVisibility(View.VISIBLE);
+                Picasso.get().load(noteItem.getImagePath())
+                        .into(binding.imageNote);
             }
+
 
             this.binding.label.setText(noteItem.getLabel());
             this.binding.timeCreate.setText(noteItem.getDate());

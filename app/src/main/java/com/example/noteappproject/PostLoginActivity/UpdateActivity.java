@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,6 +28,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -44,6 +46,10 @@ import androidx.core.content.ContextCompat;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityUpdateBinding;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,6 +58,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -72,20 +82,22 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     private String selectedImagePath;
 
     private AlertDialog dialogURL;
+    private Uri imageUri;
 
 
     final Calendar calendar = Calendar.getInstance();
 
     DatabaseReference reference;
+    StorageReference storageReference;
     private FirebaseDatabase rootNode;
+    private FirebaseStorage storage;
     private String userID;
-    //    private FirebaseFireStore db;
+
     private String idNote, label, subtitle, textContent, mdate, color, image, web;
     private NoteItem noteItem;
 
     private NotificationCompat managerCompat;
     private boolean passwordVisible;
-
 
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 2;
     private static final int REQUEST_CODE_SELECT_IMAGE = 3;
@@ -97,6 +109,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update);
+
+        storage = FirebaseStorage.getInstance();
 
         layoutWebURL_update = findViewById(R.id.layoutWebURL_update);
 
@@ -156,25 +170,31 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             public void onClick(View v) {
                 imageNote_update.setVisibility(View.GONE);
                 findViewById(R.id.imageRemoveImage).setVisibility(View.GONE);
-                imageNote_update.setImageBitmap(null);
-                selectedImagePath = "";
-                noteItem.setImagePath("");
+                Picasso.get().load((Uri) null).into(imageNote_update);
+//                noteItem.setImagePath("");
                 idNote = noteItem.getLabel();
 
                 userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
                 reference = FirebaseDatabase.getInstance().getReference("Users").
                         child(userID).child("NoteItems");
 
-                reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+                StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
+                imageReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        snapshot.getRef().child("imagePath").setValue(selectedImagePath);
-                        Toast.makeText(UpdateActivity.this, "Delete successfully", Toast.LENGTH_SHORT).show();
-                    }
+                    public void onSuccess(Void unused) {
+                        reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                snapshot.getRef().child("imagePath").setValue("");
+                                Toast.makeText(UpdateActivity.this, "Delete successfully", Toast.LENGTH_SHORT).show();
+                            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
                     }
                 });
             }
@@ -196,7 +216,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         textDateTime_update.setText(noteItem.getDate());
 
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
-            imageNote_update.setImageBitmap(BitmapFactory.decodeFile(noteItem.getImagePath()));
+            Picasso.get().load(noteItem.getImagePath())
+                    .into(imageNote_update);
             imageNote_update.setVisibility(View.VISIBLE);
             findViewById(R.id.imageRemoveImage).setVisibility(View.VISIBLE);
             selectedImagePath = noteItem.getImagePath();
@@ -396,17 +417,13 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK) {
             if (data != null) {
-                Uri selectedImageUri = data.getData();
-                if(selectedImageUri != null) {
+                imageUri = data.getData();
+                if(imageUri != null) {
                     try {
-                        InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                        imageNote_update.setImageBitmap(bitmap);
+                        Picasso.get().load(imageUri).into(imageNote_update);
+
                         imageNote_update.setVisibility(View.VISIBLE);
                         findViewById(R.id.imageRemoveImage).setVisibility(View.VISIBLE);
-
-
-                        selectedImagePath = getPathFromUri(selectedImageUri);
 
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -475,7 +492,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         idNote = noteItem.getLabel();
 
         noteItem.setColor(selectedNoteColor);
-        noteItem.setImagePath(selectedImagePath);
 
         label = label_update.getText().toString().trim();
         textContent = textContent_update.getText().toString().trim();
@@ -485,37 +501,87 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         image = noteItem.getImagePath();
         web = textWebURL_update.getText().toString().trim();
 
-        noteItem = new NoteItem(id, label, subtitle, textContent, mdate, color, image, web);
-
         userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         reference = FirebaseDatabase.getInstance().getReference("Users").
                 child(userID).child("NoteItems");
 
-        reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+        if (imageNote_update.getDrawable() == null) {
+            noteItem = new NoteItem(id, label, subtitle, textContent, mdate, color, "", web);
+            reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                snapshot.getRef().child("id").setValue(id);
-                snapshot.getRef().child("label").setValue(label);
-                snapshot.getRef().child("subtitle").setValue(subtitle);
-                snapshot.getRef().child("date").setValue(mdate);
-                snapshot.getRef().child("color").setValue(color);
-                snapshot.getRef().child("imagePath").setValue(image);
-                snapshot.getRef().child("webLink").setValue(web);
+                    snapshot.getRef().child("id").setValue(id);
+                    snapshot.getRef().child("label").setValue(label);
+                    snapshot.getRef().child("subtitle").setValue(subtitle);
+                    snapshot.getRef().child("date").setValue(mdate);
+                    snapshot.getRef().child("color").setValue(color);
+                    snapshot.getRef().child("imagePath").setValue("");
+                    snapshot.getRef().child("webLink").setValue(web);
 
-                Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
-            }
+                    Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+                }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            storageReference = FirebaseStorage.getInstance().getReference("images");
+            StorageReference imageReference = storageReference.child(System.currentTimeMillis() +
+                    "." + getFileExtension(imageUri));
+
+            imageReference.putFile(imageUri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+
+                    return imageReference.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        noteItem = new NoteItem(id, label, subtitle, textContent, mdate, color, task.getResult().toString(), web);
+                        reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                snapshot.getRef().child("id").setValue(id);
+                                snapshot.getRef().child("label").setValue(label);
+                                snapshot.getRef().child("subtitle").setValue(subtitle);
+                                snapshot.getRef().child("date").setValue(mdate);
+                                snapshot.getRef().child("color").setValue(color);
+                                snapshot.getRef().child("imagePath").setValue(task.getResult().toString());
+                                snapshot.getRef().child("webLink").setValue(web);
+
+                                Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
 
         Intent intent = new Intent();
         intent.putExtra("note", noteItem);
         setResult(UPDATE_NOTE, intent);
         finish();
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mine = MimeTypeMap.getSingleton();
+        return mine.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
     @SuppressLint("SetTextI18n")

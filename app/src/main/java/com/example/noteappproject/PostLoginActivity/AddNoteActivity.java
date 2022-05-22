@@ -3,6 +3,7 @@ package com.example.noteappproject.PostLoginActivity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -11,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -22,6 +24,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -41,10 +44,21 @@ import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -63,7 +77,8 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
     private AlertDialog dialogURL;
     private VideoView videoView;
     private String selectedNoteColor, selectedImagePath, selectedVideoPath;
-    private FrameLayout layoutAddVideo;
+    private LinearLayout layoutDeleteVideo;
+    private Uri imageUri;
 
     public static final int ADD_NOTE = 4;
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 2;
@@ -75,6 +90,8 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
     private FirebaseAuth mAuth;
     private FirebaseDatabase rootNode;
     DatabaseReference reference;
+    StorageReference storageReference;
+    private StorageTask mUploadTask;
 
     NoteItem noteItem;
     private String userID;
@@ -99,15 +116,15 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
 
         textWebURL = findViewById(R.id.textWebURL);
         layoutWebURL = findViewById(R.id.layoutWebURL);
-        layoutAddVideo = findViewById(R.id.layoutAddVideo);
+        layoutDeleteVideo = findViewById(R.id.layoutDeleteVideo);
 
         imageNote = findViewById(R.id.imageNote);
         imageBack = findViewById(R.id.imageBack);
         imageBack.setOnClickListener(this);
         imageSave = findViewById(R.id.imageSave);
         imageSave.setOnClickListener(this);
-
         videoView = findViewById(R.id.videoView);
+        videoView.setOnPreparedListener(mp -> mp.setLooping(true));
 
         selectedNoteColor = "#333333";
         selectedImagePath = "";
@@ -124,10 +141,10 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         findViewById(R.id.imageRemoveImage).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imageNote.setImageBitmap(null);
+
+                Picasso.get().load((Uri) null).into(imageNote);
                 imageNote.setVisibility(View.GONE);
                 findViewById(R.id.imageRemoveImage).setVisibility(View.GONE);
-                selectedImagePath = "";
             }
         });
 
@@ -135,7 +152,8 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onClick(View v) {
                 videoView.setVideoURI(null);
-                layoutAddVideo.setVisibility(View.GONE);
+                videoView.setVisibility(View.GONE);
+                layoutDeleteVideo.setVisibility(View.GONE);
                 findViewById(R.id.imageRemoveVideo).setVisibility(View.GONE);
                 selectedVideoPath = "";
             }
@@ -145,6 +163,7 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         setSubtitleIndicator();
 
     }
+
 
     @SuppressLint("NonConstantResourceId")
     @Override
@@ -161,6 +180,7 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
 
 
     private void sendDataToDatabase() {
+
         String labelValue = label.getText().toString().trim();
         String subtitleValue = subtitle.getText().toString().trim();
         String textContentValue = textContent.getText().toString().trim();
@@ -172,7 +192,6 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         noteItem.setText_content(textContentValue);
         noteItem.setDate(dateTimeValue);
         noteItem.setColor(selectedNoteColor);
-        noteItem.setImagePath(selectedImagePath);
 
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
@@ -180,16 +199,39 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
 
         String dateValue = noteItem.getDate();
         String colorValue = noteItem.getColor();
-        String imageValue = noteItem.getImagePath();
         String webLinkValue = noteItem.getWebLink();
 
         userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userID).child("NoteItems");
 
-        noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageValue, webLinkValue, "");
 
-        reference.child(noteItem.getLabel()).setValue(noteItem);
+        if (imageNote.getDrawable() == null) {
+            noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, "", webLinkValue, "");
+            reference.child(noteItem.getLabel()).setValue(noteItem);
+        } else {
+            storageReference = FirebaseStorage.getInstance().getReference("images");
+            StorageReference imageReference = storageReference.child(System.currentTimeMillis() +
+                    "." + getFileExtension(imageUri));
+            imageReference.putFile(imageUri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+
+                    return imageReference.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, task.getResult().toString(), webLinkValue, "");
+                        reference.child(noteItem.getLabel()).setValue(noteItem);
+                    }
+                }
+            });
+        }
 
         Toast.makeText(AddNoteActivity.this, "Add successful", Toast.LENGTH_SHORT).show();
 
@@ -337,13 +379,6 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         gradientDrawable.setColor(Color.parseColor(selectedNoteColor));
     }
 
-    @SuppressLint("QueryPermissionsNeeded")
-    private void selectImage() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, REQUEST_CODE_SELECT_IMAGE);
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -362,6 +397,23 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @SuppressLint("QueryPermissionsNeeded")
+    private void selectImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_CODE_SELECT_IMAGE);
+        }
+    }
+
+    private void selectVideo() {
+//        startActivityForResult(Intent.createChooser(new Intent().
+//                                setAction(Intent.ACTION_GET_CONTENT).
+//                                setType("video/mp4"),
+//                        "Select a video"),
+//                REQUEST_CODE_SELECT_VIDEO);
+
 
     }
 
@@ -370,21 +422,23 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK) {
             if (data != null) {
-                Uri selectedImageUri = data.getData();
-                if(selectedImageUri != null) {
+                imageUri = data.getData();
+                if(imageUri != null) {
                     try {
-                        InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                        imageNote.setImageBitmap(bitmap);
+
+                        Picasso.get().load(imageUri).into(imageNote);
+
                         imageNote.setVisibility(View.VISIBLE);
                         findViewById(R.id.imageRemoveImage).setVisibility(View.VISIBLE);
-
-                        selectedImagePath = getImagePathFromUri(selectedImageUri);
 
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
+            } else {
+                Picasso.get().cancelRequest(imageNote);
+                imageNote.setVisibility(View.GONE);
+                findViewById(R.id.imageRemoveImage).setVisibility(View.GONE);
             }
         }
         else if (requestCode == REQUEST_CODE_SELECT_VIDEO && resultCode == RESULT_OK) {
@@ -392,45 +446,29 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                 Uri selectedVideoUri = data.getData();
                 if (selectedVideoUri != null) {
                     try {
-                        layoutAddVideo.setVisibility(View.VISIBLE);
+                        layoutDeleteVideo.setVisibility(View.VISIBLE);
                         videoView.setVisibility(View.VISIBLE);
-                        findViewById(R.id.imageRemoveVideo).setVisibility(View.VISIBLE);
-
-                        selectedVideoPath = getVideoPathFromUri(selectedVideoUri);
-//                Uri uri = Uri.parse(selectedVideoPath);
-//                videoView.setVideoURI(uri);
-
-                        videoView.setVideoPath(selectedVideoPath);
-
-                        MediaController mediaController  = new MediaController(this);
-                        mediaController.setAnchorView(videoView);
-                        videoView.setMediaController(mediaController);
+                        videoView.setVideoURI(selectedVideoUri);
                         videoView.start();
-                    }
-                    catch (Exception e) {
-                        Toast.makeText(AddNoteActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                        selectedVideoPath = getPathFromUri(selectedVideoUri);
+
+                        Log.e("Tag", selectedVideoPath);
+                    } catch (Exception e) {
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         }
     }
 
-    private String getImagePathFromUri(Uri contentUri) {
-        String filePath;
-        Cursor cursor = getContentResolver()
-                .query(contentUri, null, null, null, null);
-        if (cursor == null) {
-            filePath = contentUri.getPath();
-        } else {
-            cursor.moveToFirst();
-            int index = cursor.getColumnIndex("_data");
-            filePath = cursor.getString(index);
-            cursor.close();
-        }
-        return filePath;
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mine = MimeTypeMap.getSingleton();
+        return mine.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
-    private String getVideoPathFromUri(Uri contentUri) {
+    private String getPathFromUri(Uri contentUri) {
         String filePath;
         Cursor cursor = getContentResolver()
                 .query(contentUri, null, null, null, null);
@@ -481,13 +519,6 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
             });
         }
         dialogURL.show();
-    }
-
-    private void selectVideo() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, REQUEST_CODE_SELECT_VIDEO);
-        }
     }
 
     private void addVoice() {

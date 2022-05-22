@@ -196,9 +196,58 @@
                 android:textColor="@color/white"
                 android:textColorHint="@color/white"
                 android:textSize="13sp"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layoutWebURL_update"
                 />
+
+            <LinearLayout
+                android:id="@+id/layoutDeleteVideo_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/textContent_update">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    />
+
+                <ImageView
+                    android:id="@+id/imageRemoveVideo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:background="@drawable/background_delete"
+                    android:contentDescription="@string/app_name"
+                    android:layout_marginEnd="15dp"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_delete"
+                    app:tint="@color/white" />
+
+            </LinearLayout>
+
+            <VideoView
+                android:id="@+id/videoView_update"
+                android:layout_width="match_parent"
+                android:layout_height="500dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="12dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/app_name"
+                app:layout_constraintTop_toBottomOf="@+id/layoutDeleteVideo_update"
+                app:layout_constraintBottom_toTopOf="@+id/txtEmpty"
+                android:visibility="gone"
+                />
+
+            <TextView
+                android:id="@+id/txtEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="15dp"
+                app:layout_constraintTop_toBottomOf="@id/videoView"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

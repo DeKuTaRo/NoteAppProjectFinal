@@ -34,6 +34,7 @@ import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityNoteBinding;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -41,6 +42,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private FirebaseAuth mAuth;
     private String userID;
     private DatabaseReference databaseReference;
+    private FirebaseStorage storage;
 
     NoteItem selectedNote;
 
@@ -61,6 +65,8 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private List<NoteItem> list_NoteItem;
     private CustomGridViewAdapter customGridViewAdapter;
     private CustomListViewAdapter customListViewAdapter;
+
+    private String idNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -416,14 +422,28 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     }
 
     private void onClickDeleteItem(NoteItem noteItem) {
+
+        idNote = noteItem.getLabel();
+
+        userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userID).child("NoteItems");
-        databaseReference.child(String.valueOf(noteItem.getLabel())).removeValue(new DatabaseReference.CompletionListener() {
+
+
+        storage = FirebaseStorage.getInstance();
+
+        StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
+        imageReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
-            public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
-                Toast.makeText(NoteActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
+            public void onSuccess(Void unused) {
+                databaseReference.child(String.valueOf(noteItem.getLabel())).removeValue(new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+                        Toast.makeText(NoteActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             }
         });
-
     }
 
     @Override
