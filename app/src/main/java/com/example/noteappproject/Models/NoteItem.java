@@ -30,6 +30,9 @@ public class NoteItem implements Serializable {
     @ColumnInfo(name = "imagePath")
     String imagePath;
 
+    @ColumnInfo(name = "videoPath")
+    String videoPath;
+
     @ColumnInfo(name = "webLink")
     String webLink;
 
@@ -43,7 +46,7 @@ public class NoteItem implements Serializable {
 
     }
 
-    public NoteItem(int ID, String label, String subtitle, String text_content, String date, String color, String imagePath, String webLink) {
+    public NoteItem(int ID, String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink) {
         this.ID = ID;
         this.label = label;
         this.subtitle = subtitle;
@@ -51,17 +54,19 @@ public class NoteItem implements Serializable {
         this.date = date;
         this.color = color;
         this.imagePath = imagePath;
+        this.videoPath = videoPath;
         this.webLink = webLink;
     }
 
 
-    public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String webLink, String passwordNote) {
+    public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink, String passwordNote) {
         this.label = label;
         this.subtitle = subtitle;
         this.text_content = text_content;
         this.date = date;
         this.color = color;
         this.imagePath = imagePath;
+        this.videoPath = videoPath;
         this.webLink = webLink;
         this.passwordNote = passwordNote;
     }
@@ -125,6 +130,14 @@ public class NoteItem implements Serializable {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
+    }
+
+    public String getVideoPath() {
+        return videoPath;
+    }
+
+    public void setVideoPath(String videoPath) {
+        this.videoPath = videoPath;
     }
 
     public String getWebLink() {

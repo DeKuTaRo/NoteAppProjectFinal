@@ -59,7 +59,7 @@
                 android:includeFontPadding="false"
                 android:inputType="text"
                 android:textColor="@color/white"
-                android:textColorHint="@color/white"
+                android:textColorHint="@color/colorRecyclerView"
                 android:textSize="16sp"
                 app:layout_constraintTop_toBottomOf="@id/imageBack"
                 />
@@ -90,7 +90,7 @@
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
                 android:textColor="@color/white"
-                android:textColorHint="@color/white"
+                android:textColorHint="@color/colorRecyclerView"
                 android:textSize="13sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/viewSubtitleIndicator"
@@ -181,7 +181,7 @@
                 android:inputType="textMultiLine"
                 android:minHeight="100dp"
                 android:textColor="@color/white"
-                android:textColorHint="@color/white"
+                android:textColorHint="@color/colorRecyclerView"
                 android:textSize="13sp"
                 app:layout_constraintTop_toBottomOf="@id/layoutWebURL"
                 />

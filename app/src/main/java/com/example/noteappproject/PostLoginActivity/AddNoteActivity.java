@@ -78,7 +78,7 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
     private VideoView videoView;
     private String selectedNoteColor, selectedImagePath, selectedVideoPath;
     private LinearLayout layoutDeleteVideo;
-    private Uri imageUri;
+    private Uri imageUri, videoUri;
 
     public static final int ADD_NOTE = 4;
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 2;
@@ -90,9 +90,10 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
     private FirebaseAuth mAuth;
     private FirebaseDatabase rootNode;
     DatabaseReference reference;
-    StorageReference storageReference;
+    StorageReference storageImageReference, storageVideoReference;
     private StorageTask mUploadTask;
 
+    private String imageUriTask, videoUriTask;
     NoteItem noteItem;
     private String userID;
     @SuppressLint("SetTextI18n")
@@ -178,7 +179,6 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-
     private void sendDataToDatabase() {
 
         String labelValue = label.getText().toString().trim();
@@ -192,6 +192,7 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         noteItem.setText_content(textContentValue);
         noteItem.setDate(dateTimeValue);
         noteItem.setColor(selectedNoteColor);
+
 
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
@@ -207,11 +208,11 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
 
 
         if (imageNote.getDrawable() == null) {
-            noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, "", webLinkValue, "");
+            noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, "", videoUriTask, webLinkValue, "");
             reference.child(noteItem.getLabel()).setValue(noteItem);
         } else {
-            storageReference = FirebaseStorage.getInstance().getReference("images");
-            StorageReference imageReference = storageReference.child(System.currentTimeMillis() +
+            storageImageReference = FirebaseStorage.getInstance().getReference("images");
+            StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageUri));
             imageReference.putFile(imageUri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
@@ -226,7 +227,36 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
-                        noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, task.getResult().toString(), webLinkValue, "");
+                        imageUriTask = task.getResult().toString();
+                        noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
+                        reference.child(noteItem.getLabel()).setValue(noteItem);
+                    }
+                }
+            });
+        }
+
+        if (videoView.getVisibility() == View.GONE) {
+            noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, "", webLinkValue, "");
+            reference.child(noteItem.getLabel()).setValue(noteItem);
+        } else {
+            storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+            StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
+                    "." + getFileExtension(videoUri));
+            videoReference.putFile(videoUri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+
+                    return videoReference.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        videoUriTask = task.getResult().toString();
+                        noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
                         reference.child(noteItem.getLabel()).setValue(noteItem);
                     }
                 }
@@ -408,13 +438,11 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void selectVideo() {
-//        startActivityForResult(Intent.createChooser(new Intent().
-//                                setAction(Intent.ACTION_GET_CONTENT).
-//                                setType("video/mp4"),
-//                        "Select a video"),
-//                REQUEST_CODE_SELECT_VIDEO);
-
-
+        startActivityForResult(Intent.createChooser(new Intent().
+                                setAction(Intent.ACTION_GET_CONTENT).
+                                setType("video/mp4"),
+                        "Select a video"),
+                REQUEST_CODE_SELECT_VIDEO);
     }
 
     @Override
@@ -443,17 +471,14 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         }
         else if (requestCode == REQUEST_CODE_SELECT_VIDEO && resultCode == RESULT_OK) {
             if (data != null) {
-                Uri selectedVideoUri = data.getData();
-                if (selectedVideoUri != null) {
+                videoUri = data.getData();
+                if (videoUri != null) {
                     try {
                         layoutDeleteVideo.setVisibility(View.VISIBLE);
                         videoView.setVisibility(View.VISIBLE);
-                        videoView.setVideoURI(selectedVideoUri);
+                        videoView.setVideoURI(videoUri);
                         videoView.start();
 
-                        selectedVideoPath = getPathFromUri(selectedVideoUri);
-
-                        Log.e("Tag", selectedVideoPath);
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -468,20 +493,6 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         return mine.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
-    private String getPathFromUri(Uri contentUri) {
-        String filePath;
-        Cursor cursor = getContentResolver()
-                .query(contentUri, null, null, null, null);
-        if (cursor == null) {
-            filePath = contentUri.getPath();
-        } else {
-            cursor.moveToFirst();
-            int index = cursor.getColumnIndex("_data");
-            filePath = cursor.getString(index);
-            cursor.close();
-        }
-        return filePath;
-    }
 
     private void showAddURLDialog() {
         if (dialogURL == null) {

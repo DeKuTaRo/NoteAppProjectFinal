@@ -428,22 +428,54 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userID).child("NoteItems");
 
-
         storage = FirebaseStorage.getInstance();
 
-        StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-        imageReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                databaseReference.child(String.valueOf(noteItem.getLabel())).removeValue(new DatabaseReference.CompletionListener() {
-                    @Override
-                    public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
-                        Toast.makeText(NoteActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
+            StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
+            imageReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void unused) {
+                    databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
 
-            }
-        });
+                        }
+                    });
+                }
+            });
+        }
+        else {
+            databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+
+                }
+            });
+        }
+         if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
+            StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
+            videoReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void unused) {
+                    databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+
+                        }
+                    });
+                }
+            });
+        }
+         else {
+             databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
+                 @Override
+                 public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+
+                 }
+             });
+         }
+
+        Toast.makeText(NoteActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
     }
 
     @Override
