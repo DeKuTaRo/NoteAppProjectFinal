@@ -4,22 +4,22 @@
 
     <item
         android:id="@+id/listViewShow"
-        app:showAsAction="never"
-        android:icon="@drawable/ic_settings"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_list_view"
         android:title="SHOW WITH LIST VIEW"
         />
 
     <item
         android:id="@+id/gridViewShow"
-        app:showAsAction="never"
+        app:showAsAction="always"
         android:icon="@drawable/ic_grid_view"
         android:title="SHOW WITH GRID VIEW"
         />
 
     <item
         android:id="@+id/settingBtn"
-        app:showAsAction="never"
-        android:icon="@drawable/ic_list_view"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_settings"
         android:title="SETTINGS"
         />
 

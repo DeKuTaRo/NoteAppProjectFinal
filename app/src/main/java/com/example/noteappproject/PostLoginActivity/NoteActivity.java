@@ -83,7 +83,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             }
         });
 
-        InitializeListView();
+//        InitializeListView();
         InitializeGridView();
         DatabaseSetup();
         SetupGridView();
@@ -103,7 +103,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem != null) {
                     list_NoteItem.add(noteItem);
                     customGridViewAdapter.notifyDataSetChanged();
-                    customListViewAdapter.notifyDataSetChanged();
                 }
             }
 
@@ -122,7 +121,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     }
                 }
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -139,7 +137,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     }
                 }
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -227,7 +224,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
             }
         } else if (requestCode == 102) {
             if (resultCode == UpdateActivity.UPDATE_NOTE) {
@@ -236,7 +232,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
             }
             else if (resultCode == UpdateActivity.SET_PASSWORD) {
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
@@ -244,7 +239,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
             }
             else if (resultCode == UpdateActivity.REMOVE_PASSWORD) {
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
@@ -252,7 +246,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
             }
         }
     }
@@ -407,14 +400,12 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     Toast.makeText(NoteActivity.this, "Pinned", Toast.LENGTH_SHORT).show();
                 }
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
                 return true;
             case R.id.delete:
                 onClickDeleteItem(selectedNote);
                 RoomDB.getInstance(this).mainDAO().delete(selectedNote);
                 list_NoteItem.remove(selectedNote);
                 customGridViewAdapter.notifyDataSetChanged();
-                customListViewAdapter.notifyDataSetChanged();
                 return true;
             default:
                 return false;
