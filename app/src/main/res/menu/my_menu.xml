@@ -3,19 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/listViewShow"
+        android:id="@+id/optionMenuItem_SwitchLayoutMode"
         app:showAsAction="always"
-        android:icon="@drawable/ic_list_view"
-        android:title="SHOW WITH LIST VIEW"
+        android:icon="@drawable/ic_baseline_grid_on_24"
+        android:title="Switch Layout Mode"
         />
-
-    <item
-        android:id="@+id/gridViewShow"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_grid_view"
-        android:title="SHOW WITH GRID VIEW"
-        />
-
     <item
         android:id="@+id/settingBtn"
         app:showAsAction="always"

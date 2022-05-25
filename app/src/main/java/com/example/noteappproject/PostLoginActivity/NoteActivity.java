@@ -1,8 +1,6 @@
 package com.example.noteappproject.PostLoginActivity;
 
-import  android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.DialogInterface;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
@@ -24,17 +22,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.example.noteappproject.CustomAdapter.CustomGridViewAdapter;
-import com.example.noteappproject.CustomAdapter.CustomListViewAdapter;
+import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityNoteBinding;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -63,8 +59,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     // RecyclerView
     private List<NoteItem> list_NoteItem;
-    private CustomGridViewAdapter customGridViewAdapter;
-    private CustomListViewAdapter customListViewAdapter;
+    private RecyclerViewNoteCustomAdapter recyclerViewNoteCustomAdapter;
 
     private String idNote;
 
@@ -75,18 +70,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         View viewRoot = this.binding.getRoot();
         setContentView(viewRoot);
 
-        this.binding.imageAddNoteMain.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
-                startActivityForResult(i, 101);
-            }
+        this.binding.imageAddNoteMain.setOnClickListener(v -> {
+            Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
+            startActivityForResult(i, 101);
         });
 
-//        InitializeListView();
-        InitializeGridView();
+        InitializeNoteRecyclerView();
         DatabaseSetup();
-        SetupGridView();
+        SetUpNoteRecyclerView();
         SearchViewInputText();
     }
 
@@ -102,7 +93,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 NoteItem noteItem = snapshot.getValue(NoteItem.class);
                 if (noteItem != null) {
                     list_NoteItem.add(noteItem);
-                    customGridViewAdapter.notifyDataSetChanged();
+                    recyclerViewNoteCustomAdapter.notifyDataSetChanged();
                 }
             }
 
@@ -120,7 +111,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                         break;
                     }
                 }
-                customGridViewAdapter.notifyDataSetChanged();
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -136,7 +127,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                         break;
                     }
                 }
-                customGridViewAdapter.notifyDataSetChanged();
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -152,20 +143,12 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     }
 
-    private void SetUpListView() {
+    private void SetUpNoteRecyclerView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         this.binding.recycleView.setLayoutManager(layoutManager);
         this.binding.recycleView.setHasFixedSize(true);
         this.binding.recycleView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        this.binding.recycleView.setAdapter(this.customListViewAdapter);
-    }
-
-    private void SetupGridView() {
-        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, LinearLayout.VERTICAL);
-        this.binding.recycleView.setLayoutManager(layoutManager);
-        this.binding.recycleView.setHasFixedSize(true);
-        this.binding.recycleView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        this.binding.recycleView.setAdapter(this.customGridViewAdapter);
+        this.binding.recycleView.setAdapter(this.recyclerViewNoteCustomAdapter);
     }
 
     private void SearchViewInputText() {
@@ -177,14 +160,13 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                filterGridView(newText);
-                filterListView(newText);
+                filterNoteRecyclerView(newText);
                 return true;
             }
         });
     }
 
-    private void filterGridView(String newText) {
+    private void filterNoteRecyclerView(String newText) {
         List<NoteItem> noteItemList = new ArrayList<>();
 
         for (NoteItem noteItem : list_NoteItem) {
@@ -195,21 +177,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             }
         }
 
-        customGridViewAdapter.filterListInGridView(noteItemList);
-    }
-
-    private void filterListView(String newText) {
-        List<NoteItem> noteItemList = new ArrayList<>();
-
-        for (NoteItem noteItem : list_NoteItem) {
-            if (noteItem.getLabel().toLowerCase().contains(newText.toLowerCase()) ||
-                    noteItem.getSubtitle().toLowerCase().contains(newText.toLowerCase()) ||
-                    noteItem.getText_content().toLowerCase().contains(newText.toLowerCase())) {
-                noteItemList.add(noteItem);
-            }
-        }
-
-        customListViewAdapter.filterListInListView(noteItemList);
+        this.recyclerViewNoteCustomAdapter.filter(noteItemList);
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -219,65 +187,44 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (requestCode == 101) {
             if (resultCode == AddNoteActivity.ADD_NOTE) {
+                assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().insert(new_notes);
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                customGridViewAdapter.notifyDataSetChanged();
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
         } else if (requestCode == 102) {
             if (resultCode == UpdateActivity.UPDATE_NOTE) {
+                assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().update(new_notes.getID(), new_notes.getLabel(), new_notes.getSubtitle(), new_notes.getText_content(), new_notes.getDate(), new_notes.getColor(), new_notes.getImagePath(), new_notes.getWebLink());
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                customGridViewAdapter.notifyDataSetChanged();
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
             else if (resultCode == UpdateActivity.SET_PASSWORD) {
+                assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                customGridViewAdapter.notifyDataSetChanged();
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
             else if (resultCode == UpdateActivity.REMOVE_PASSWORD) {
+                assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
                 list_NoteItem.clear();
                 list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                customGridViewAdapter.notifyDataSetChanged();
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
         }
     }
 
-    private void InitializeListView() {
+    private void InitializeNoteRecyclerView() {
         this.list_NoteItem = new ArrayList<>();
-        this.customListViewAdapter = new CustomListViewAdapter(this, this.list_NoteItem, new CustomListViewAdapter.IItemClick() {
-
-            @Override
-            public void onClick(NoteItem noteItem) {
-                if (noteItem.getPasswordNote().isEmpty()) {
-                    Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
-                    intent.putExtra("noteItems", noteItem);
-                    startActivityForResult(intent, 102);
-                } else {
-                    showPasswordInputDialog(noteItem);
-                }
-
-            }
-
-            @Override
-            public void onLongClick(NoteItem noteItem, CardView cardView) {
-                selectedNote = new NoteItem();
-                selectedNote = noteItem;
-                showPopUp(cardView);
-            }
-        });
-    }
-
-    private void InitializeGridView() {
-        this.list_NoteItem = new ArrayList<>();
-        this.customGridViewAdapter = new CustomGridViewAdapter(this, this.list_NoteItem, new CustomGridViewAdapter.IItemClick() {
+        this.recyclerViewNoteCustomAdapter = new RecyclerViewNoteCustomAdapter(this, this.list_NoteItem, new RecyclerViewNoteCustomAdapter.IItemClick() {
 
             @Override
             public void onClick(NoteItem noteItem) {
@@ -353,26 +300,19 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle("Please enter your password")
                 .setView(ll)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Confirm", (dialog, which) -> {
+                    String passwordValue = passwordNote.getText().toString();
 
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String passwordValue = passwordNote.getText().toString();
-
-                        if (passwordValue.equals(noteItem.getPasswordNote())) {
-                            Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
-                            intent.putExtra("noteItems", noteItem);
-                            startActivityForResult(intent, 102);
-                        } else {
-                            Toast.makeText(NoteActivity.this, "Password incorrect", Toast.LENGTH_SHORT).show();
-                        }
+                    if (passwordValue.equals(noteItem.getPasswordNote())) {
+                        Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
+                        intent.putExtra("noteItems", noteItem);
+                        startActivityForResult(intent, 102);
+                    } else {
+                        Toast.makeText(NoteActivity.this, "Password incorrect", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                .setNegativeButton("Cancel", (dialog, which) -> {
 
-                    }
                 });
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -399,13 +339,13 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     RoomDB.getInstance(this).mainDAO().pin(selectedNote.getID(), true);
                     Toast.makeText(NoteActivity.this, "Pinned", Toast.LENGTH_SHORT).show();
                 }
-                customGridViewAdapter.notifyDataSetChanged();
+                this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
                 return true;
             case R.id.delete:
                 onClickDeleteItem(selectedNote);
                 RoomDB.getInstance(this).mainDAO().delete(selectedNote);
                 list_NoteItem.remove(selectedNote);
-                customGridViewAdapter.notifyDataSetChanged();
+                this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
                 return true;
             default:
                 return false;
@@ -423,46 +363,24 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-            imageReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void unused) {
-                    databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(idNote).removeValue((error, ref) -> {
 
-                        }
-                    });
-                }
-            });
+            }));
         }
         else {
-            databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+            databaseReference.child(idNote).removeValue((error, ref) -> {
 
-                }
             });
         }
          if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-            videoReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void unused) {
-                    databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(idNote).removeValue((error, ref) -> {
 
-                        }
-                    });
-                }
-            });
+            }));
         }
          else {
-             databaseReference.child(idNote).removeValue(new DatabaseReference.CompletionListener() {
-                 @Override
-                 public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+             databaseReference.child(idNote).removeValue((error, ref) -> {
 
-                 }
              });
          }
 
@@ -480,11 +398,8 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.listViewShow :
-                SetUpListView();
-                break;
-            case R.id.gridViewShow:
-                SetupGridView();
+            case R.id.optionMenuItem_SwitchLayoutMode:
+                SwitchLayout(item);
                 break;
             case R.id.settingBtn:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -495,4 +410,25 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         return super.onOptionsItemSelected(item);
     }
 
+    private void SwitchLayout(MenuItem item) {
+        if ( this.recyclerViewNoteCustomAdapter.getType() == RecyclerViewNoteCustomAdapter.TYPE_LIST_VIEW ){
+            this.recyclerViewNoteCustomAdapter.setType(RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW);
+            item.setIcon(R.drawable.ic_baseline_grid_off_24);
+
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(NoteActivity.this, 2);
+            this.binding.recycleView.setLayoutManager(gridLayoutManager);
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        if ( this.recyclerViewNoteCustomAdapter.getType() == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW ){
+            this.recyclerViewNoteCustomAdapter.setType(RecyclerViewNoteCustomAdapter.TYPE_LIST_VIEW);
+            item.setIcon(R.drawable.ic_baseline_grid_on_24);
+
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(NoteActivity.this, LinearLayoutManager.VERTICAL,false);
+            this.binding.recycleView.setLayoutManager(layoutManager);
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+            return;
+        }
+    }
 }
