@@ -28,7 +28,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.example.noteappproject.AdvancedFunction.TrashBinActivity;
 import com.example.noteappproject.CustomAdapter.CustomGridViewAdapter;
 import com.example.noteappproject.CustomAdapter.CustomListViewAdapter;
 import com.example.noteappproject.Models.NoteItem;
@@ -81,14 +80,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             public void onClick(View v) {
                 Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
                 startActivityForResult(i, 101);
-            }
-        });
-
-        this.binding.imageTrashBin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(NoteActivity.this, TrashBinActivity.class);
-                startActivity(i);
             }
         });
 
@@ -187,7 +178,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             @Override
             public boolean onQueryTextChange(String newText) {
                 filterGridView(newText);
-//                filterListView(newText);
+                filterListView(newText);
                 return true;
             }
         });
@@ -207,19 +198,19 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         customGridViewAdapter.filterListInGridView(noteItemList);
     }
 
-//    private void filterListView(String newText) {
-//        List<NoteItem> noteItemList = new ArrayList<>();
-//
-//        for (NoteItem noteItem : list_NoteItem) {
-//            if (noteItem.getLabel().toLowerCase().contains(newText.toLowerCase()) ||
-//                    noteItem.getSubtitle().toLowerCase().contains(newText.toLowerCase()) ||
-//                    noteItem.getText_content().toLowerCase().contains(newText.toLowerCase())) {
-//                noteItemList.add(noteItem);
-//            }
-//        }
-//
-//        customListViewAdapter.filterListInListView(noteItemList);
-//    }
+    private void filterListView(String newText) {
+        List<NoteItem> noteItemList = new ArrayList<>();
+
+        for (NoteItem noteItem : list_NoteItem) {
+            if (noteItem.getLabel().toLowerCase().contains(newText.toLowerCase()) ||
+                    noteItem.getSubtitle().toLowerCase().contains(newText.toLowerCase()) ||
+                    noteItem.getText_content().toLowerCase().contains(newText.toLowerCase())) {
+                noteItemList.add(noteItem);
+            }
+        }
+
+        customListViewAdapter.filterListInListView(noteItemList);
+    }
 
     @SuppressLint("NotifyDataSetChanged")
     @Override
@@ -416,10 +407,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 list_NoteItem.remove(selectedNote);
                 customGridViewAdapter.notifyDataSetChanged();
                 return true;
-            case R.id.moveToTrashBin:
-                Intent i = new Intent(NoteActivity.this, TrashBinActivity.class);
-                startActivityForResult(i, 103);
-                return true;
             default:
                 return false;
         }
@@ -498,9 +485,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 break;
             case R.id.gridViewShow:
                 SetupGridView();
-                break;
-            case R.id.profileBtn:
-                startActivity(new Intent(this, ProfileActivity.class));
                 break;
             case R.id.settingBtn:
                 startActivity(new Intent(this, SettingsActivity.class));
