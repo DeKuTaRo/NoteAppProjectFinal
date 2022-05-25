@@ -14,4 +14,10 @@
         android:icon="@drawable/ic_delete"
         />
 
+    <item
+        android:id="@+id/moveToTrashBin"
+        android:title="MOVE TO TRASH BIN"
+        android:icon="@drawable/ic_delete"
+        />
+
 </menu>

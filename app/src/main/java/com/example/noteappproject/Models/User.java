@@ -15,9 +15,8 @@ public class User {
         this.avatarPath = avatarPath;
     }
 
-    public User(String fullName, String email, String avatarPath) {
+    public User(String fullName, String avatarPath) {
         this.fullName = fullName;
-        this.email = email;
         this.avatarPath = avatarPath;
     }
 

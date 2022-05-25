@@ -43,39 +43,63 @@
         android:padding="15dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <ImageView
-            android:id="@+id/imageAddNote"
-            android:layout_width="23dp"
-            android:layout_height="23dp"
-            android:contentDescription="@string/app_name"
-            android:layout_marginStart="15dp"
-            android:src="@drawable/ic_add_outline"
-            app:tint="@color/white" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
-        <ImageView
-            android:id="@+id/imageAddImage"
-            android:layout_width="23dp"
-            android:layout_height="23dp"
-            android:contentDescription="@string/app_name"
-            android:layout_marginStart="15dp"
-            android:src="@drawable/ic_image_outline"
-            app:tint="@color/white" />
+            <ImageView
+                android:id="@+id/imageAddNote"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:contentDescription="@string/app_name"
+                android:layout_marginStart="15dp"
+                android:src="@drawable/ic_add_outline"
+                app:tint="@color/white" />
 
-        <ImageView
-            android:id="@+id/imageAddWeblink"
-            android:layout_width="23dp"
-            android:layout_height="23dp"
-            android:contentDescription="@string/app_name"
-            android:layout_marginStart="15dp"
-            android:src="@drawable/ic_language_outline"
-            app:tint="@color/white" />
+            <ImageView
+                android:id="@+id/imageAddImage"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:contentDescription="@string/app_name"
+                android:layout_marginStart="15dp"
+                android:src="@drawable/ic_image_outline"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/imageAddWeblink"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:contentDescription="@string/app_name"
+                android:layout_marginStart="15dp"
+                android:src="@drawable/ic_language_outline"
+                app:tint="@color/white" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="30dp">
+
+            <ImageView
+                android:id="@+id/imageTrashBin"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:contentDescription="@string/app_name"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_delete"
+                app:tint="@color/white" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
     <ImageView
         android:id="@+id/imageAddNoteMain"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginEnd="30dp"
         android:background="@drawable/background_add_button"
         android:contentDescription="@string/app_name"

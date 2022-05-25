@@ -77,7 +77,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     private EditText label_update, subtitle_update, textContent_update;
     private TextView textDateTime_update, textWebURL_update;
     private View viewSubtitleIndicator_update;
-    private ImageView imageBack, imageUpdate, imageSetPassword, imageNote_update, imageRemoveVideo;
+    private ImageView imageBack, imageUpdate, imageSetPassword, imageNote_update, imageNotification;
     private LinearLayout layoutWebURL_update, layoutDeleteVideo_update;
     private VideoView videoView_update;
 
@@ -138,6 +138,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
         imageSetPassword = findViewById(R.id.imageSetPassword);
         imageSetPassword.setOnClickListener(this);
+
+        imageNotification = findViewById(R.id.imageNotification);
+        imageNotification.setOnClickListener(this);
 
         imageNote_update = findViewById(R.id.imageNote_update);
 
@@ -249,9 +252,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         setValueIntent();
         initMiscellaneous();
         setSubtitleIndicator();
-
 //        managerCompat = NotificationManagerCompat.from(this);
     }
+
 
     private void setValueIntent() {
 
@@ -294,6 +297,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                 break;
             case R.id.imageSetPassword :
                 setPasswordNote();
+                break;
+            case R.id.imageNotification:
+                setNotification();
                 break;
         }
     }

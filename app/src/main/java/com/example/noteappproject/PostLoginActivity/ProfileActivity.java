@@ -69,8 +69,8 @@ public class ProfileActivity extends AppCompatActivity {
         this.reference = FirebaseDatabase.getInstance().getReference("Users");
         this.userID = this.user.getUid();
 
-        final TextView fullNameTextView = this.binding.fullName;
-        final TextView emailTextView = this.binding.emailAddress;
+//        final TextView fullNameTextView = this.binding.fullName;
+//        final TextView emailTextView = this.binding.emailAddress;
 
         this.reference.child(this.userID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -80,9 +80,14 @@ public class ProfileActivity extends AppCompatActivity {
                 if (userProfileValue != null) {
                     String fullName = userProfileValue.getFullName();
                     String email = userProfileValue.getEmail();
+                    String imageAvatar = userProfileValue.getAvatarPath();
 
-                    fullNameTextView.setText(fullName);
-                    emailTextView.setText(email);
+                    binding.fullName.setText(fullName);
+                    binding.emailAddress.setText(email);
+
+                    if (imageAvatar != null && !imageAvatar.trim().isEmpty()) {
+                        Picasso.get().load(imageAvatar).into(binding.imageAvatar);
+                    }
                 }
             }
 
@@ -105,6 +110,14 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             }
         });
+
+        this.binding.imageEditName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.fullName.setEnabled(true);
+            }
+        });
+
     }
 
     @Override
@@ -127,31 +140,18 @@ public class ProfileActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+
     private void saveProfileData() {
 
         String fullName = binding.fullName.getText().toString().trim();
-        String email = binding.emailAddress.getText().toString().trim();
-
-        String fullNameValue = binding.fullName.getText().toString().trim();
-        reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                snapshot.getRef().child("fullName").setValue(fullNameValue);
-                Toast.makeText(ProfileActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
 
         if (binding.imageAvatar.getDrawable() == null) {
-            userProfile = new User(fullName, email, "");
+            userProfile = new User(fullName, "");
             reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    snapshot.getRef().child("fullName").setValue(fullNameValue);
+                    snapshot.getRef().child("fullName").setValue(fullName);
                     snapshot.getRef().child("avatarPath").setValue("");
 
                     Toast.makeText(ProfileActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
@@ -173,18 +173,18 @@ public class ProfileActivity extends AppCompatActivity {
                         throw task.getException();
                     }
 
-                    return storageImageAvatarReference.getDownloadUrl();
+                    return imageCoverPhotoReference.getDownloadUrl();
                 }
             }).addOnCompleteListener(new OnCompleteListener<Uri>() {
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
                         imageAvatarUriTask = task.getResult().toString();
-                        userProfile = new User(fullName, email, imageAvatarUriTask);
+                        userProfile = new User(fullName, imageAvatarUriTask);
                         reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                snapshot.getRef().child("fullName").setValue(fullNameValue);
+                                snapshot.getRef().child("fullName").setValue(fullName);
                                 snapshot.getRef().child("avatarPath").setValue(imageAvatarUriTask);
 
                                 Toast.makeText(ProfileActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
@@ -199,6 +199,8 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             });
         }
+
+        this.binding.fullName.setEnabled(false);
     }
 
     @Override

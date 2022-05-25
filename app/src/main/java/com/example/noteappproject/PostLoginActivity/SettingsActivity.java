@@ -4,6 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,17 +28,17 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     private String userID;
 
-    private TextView profileTextView, changeFontTextView, timeSettingTextView, volumeTextView;
+    private TextView changeFontTextView, timeSettingTextView, volumeTextView;
     private Button changePassBtn, logoutBtn;
 
-    private String oldPasswordUser;
+    AutoCompleteTextView autoCompleteTextView;
+    String[] itemFontSize = {"Small", "Medium", "Big", "Very Big"};
+    ArrayAdapter<String> arrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-        profileTextView = findViewById(R.id.profileTextView);
-        profileTextView.setOnClickListener(this);
 
         changeFontTextView = findViewById(R.id.changeFontTextView);
         changeFontTextView.setOnClickListener(this);
@@ -52,19 +55,21 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         logoutBtn = findViewById(R.id.logoutBtn);
         logoutBtn.setOnClickListener(this);
 
+        arrayAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
+        autoCompleteTextView = findViewById(R.id.selectFontSize);
+        autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String item = parent.getItemAtPosition(position).toString();
+                Toast.makeText(SettingsActivity.this, "Item" + item, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.profileTextView :
-                startActivity(new Intent(this, ProfileActivity.class));
-                break;
-            case R.id.trashBinList :
-                // chuyển vào screen thùng rác chứa những note bị xóa nhưng chưa xóa hẳn
-                startActivity(new Intent(this, TrashBinActivity.class));
-                break;
             case R.id.changeFontTextView :
                 Toast.makeText(this, "change Font", Toast.LENGTH_SHORT).show();
                 break;

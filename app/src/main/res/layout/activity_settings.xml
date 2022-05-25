@@ -16,35 +16,6 @@
         android:background="@color/colorRecyclerView">
 
         <TextView
-            android:id="@+id/profileTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Profile"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/color_primary"
-            android:background="@drawable/bg_search_note"
-            android:paddingStart="10dp"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            />
-
-        <TextView
-            android:id="@+id/trashBinList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Trash Bin"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/color_primary"
-            android:background="@drawable/bg_search_note"
-            android:paddingStart="10dp"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            app:drawableStartCompat="@drawable/ic_delete"
-            tools:ignore="RtlSymmetry" />
-
-        <TextView
             android:id="@+id/changeFontTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -58,6 +29,28 @@
             android:textStyle="bold"
             />
 
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:hint="SELECT FONT SIZE"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/selectFontSize"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"/>
+
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         <TextView
             android:id="@+id/timeSettingTextView"

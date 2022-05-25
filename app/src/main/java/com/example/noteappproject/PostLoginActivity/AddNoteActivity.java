@@ -186,6 +186,12 @@ public class AddNoteActivity extends AppCompatActivity implements View.OnClickLi
         String textContentValue = textContent.getText().toString().trim();
         String dateTimeValue = textDateTime.getText().toString().trim();
 
+        if (labelValue.isEmpty()) {
+            label.setError("Label must not be empty");
+            label.requestFocus();
+            return;
+        }
+
         noteItem = new NoteItem();
 
         noteItem.setLabel(labelValue);

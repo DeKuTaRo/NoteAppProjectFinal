@@ -17,6 +17,13 @@
         />
 
     <item
+        android:id="@+id/profileBtn"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_profile"
+        android:title="SETTINGS"
+        />
+
+    <item
         android:id="@+id/settingBtn"
         app:showAsAction="always"
         android:icon="@drawable/ic_settings"
