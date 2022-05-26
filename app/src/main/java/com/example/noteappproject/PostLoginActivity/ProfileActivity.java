@@ -13,7 +13,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,13 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.Models.User;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityProfileBinding;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -38,7 +33,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 public class ProfileActivity extends AppCompatActivity {
@@ -97,26 +91,18 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
-        this.binding.avatarFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(ProfileActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                            REQUEST_CODE_STORAGE_AVATAR_PERMISSION);
-                }
-                else {
-                    selectImageAvatar();
-                }
+        this.binding.avatarFAB.setOnClickListener(v -> {
+            if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(ProfileActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        REQUEST_CODE_STORAGE_AVATAR_PERMISSION);
+            }
+            else {
+                selectImageAvatar();
             }
         });
 
-        this.binding.imageEditName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                binding.fullName.setEnabled(true);
-            }
-        });
+        this.binding.imageEditName.setOnClickListener(v -> binding.fullName.setEnabled(true));
 
     }
 
@@ -166,36 +152,30 @@ public class ProfileActivity extends AppCompatActivity {
             storageImageAvatarReference = FirebaseStorage.getInstance().getReference("avatar");
             StorageReference imageCoverPhotoReference = storageImageAvatarReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageAvatarUri));
-            imageCoverPhotoReference.putFile(imageAvatarUri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
-                    }
-
-                    return imageCoverPhotoReference.getDownloadUrl();
+            imageCoverPhotoReference.putFile(imageAvatarUri).continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
                 }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()) {
-                        imageAvatarUriTask = task.getResult().toString();
-                        userProfile = new User(fullName, imageAvatarUriTask);
-                        reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                snapshot.getRef().child("fullName").setValue(fullName);
-                                snapshot.getRef().child("avatarPath").setValue(imageAvatarUriTask);
 
-                                Toast.makeText(ProfileActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
-                            }
+                return imageCoverPhotoReference.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    imageAvatarUriTask = task.getResult().toString();
+                    userProfile = new User(fullName, imageAvatarUriTask);
+                    reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            snapshot.getRef().child("fullName").setValue(fullName);
+                            snapshot.getRef().child("avatarPath").setValue(imageAvatarUriTask);
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(ProfileActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+                        }
 
-                            }
-                        });
-                    }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
                 }
             });
         }

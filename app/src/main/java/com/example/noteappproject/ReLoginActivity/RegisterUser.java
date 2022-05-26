@@ -20,6 +20,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+
 public class RegisterUser extends AppCompatActivity implements View.OnClickListener{
 
     private ActivityRegisterUserBinding binding;
@@ -116,10 +118,12 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
+        //String bcryptHashPassword = BCrypt.withDefaults().hashToString(12, passwordValue.toCharArray());
+
         progressBar.setVisibility(View.VISIBLE);
+
         mAuth.createUserWithEmailAndPassword(emailValue, passwordValue)
                 .addOnCompleteListener(this, task -> {
-
                     if (task.isSuccessful()) {
                         User user = new User(fullNameValue, emailValue, passwordValue, "");
 

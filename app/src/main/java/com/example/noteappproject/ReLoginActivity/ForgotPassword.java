@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth;
 public class ForgotPassword extends AppCompatActivity {
 
     private ActivityForgotPasswordBinding binding;
-
     private FirebaseAuth mAuth;
 
     @Override
@@ -26,9 +25,7 @@ public class ForgotPassword extends AppCompatActivity {
         View viewRoot = this.binding.getRoot();
         setContentView(viewRoot);
 
-
         this.mAuth = FirebaseAuth.getInstance();
-
         this.binding.resetPasswordBtn.setOnClickListener(view -> resetPassword());
     }
 
