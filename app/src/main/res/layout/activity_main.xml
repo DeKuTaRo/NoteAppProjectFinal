@@ -8,20 +8,20 @@
     tools:context=".ReLoginActivity.MainActivity">
 
     <TextView
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:text="MegaMaze"
-       android:textSize="60sp"
-       android:textStyle="bold"
-       android:textAlignment="center"
-       android:fontFamily="sans-serif-black"
-       android:layout_marginTop="50dp"
-       />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/app_title"
+        android:textSize="60sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginTop="50dp"
+        />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Your awesome app"
+        android:text="@string/app_sub_title"
         android:textStyle="italic"
         android:textSize="18sp"
         android:textAlignment="center"

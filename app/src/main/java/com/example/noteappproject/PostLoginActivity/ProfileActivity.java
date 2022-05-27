@@ -38,14 +38,17 @@ import com.squareup.picasso.Picasso;
 public class ProfileActivity extends AppCompatActivity {
 
     private ActivityProfileBinding binding;
+
     private FirebaseUser user;
     private DatabaseReference reference;
-    StorageReference storageImageAvatarReference;
-    private String imageAvatarUriTask;
+    private StorageReference storageImageAvatarReference;
 
-    private String userID;
-    User userProfile;
+    private String imageAvatarUriTask;
     private Uri imageAvatarUri;
+    private String userID;
+
+    private User userProfile;
+
 
     private static final int REQUEST_CODE_STORAGE_AVATAR_PERMISSION = 2;
     private static final int REQUEST_CODE_SELECT_IMAGE_AVATAR = 3;

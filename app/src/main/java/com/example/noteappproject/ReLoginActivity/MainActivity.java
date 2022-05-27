@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,6 +17,7 @@ import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityMainBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.shashank.sony.fancytoastlib.FancyToast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             default:
                 // Toast Error Message
+                FancyToast.makeText(MainActivity.this, "Error ", FancyToast.LENGTH_LONG, FancyToast.CONFUSING, false);
                 break;
         }
 
@@ -122,23 +123,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         this.binding.progressBar.setVisibility(View.VISIBLE);
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        this.mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                        assert user != null;
-                        if (user.isEmailVerified()) {
-                            Toast.makeText(MainActivity.this, "Login successfully", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(MainActivity.this, NoteActivity.class));
-                        } else {
-                            user.sendEmailVerification();
-                            Log.e("Tag", user.sendEmailVerification().toString());
 
-                            Toast.makeText(MainActivity.this, "Check your email to verify your account", Toast.LENGTH_SHORT).show();
-                            this.binding.progressBar.setVisibility(View.GONE);
+                        if ( user != null ){
+                            if (user.isEmailVerified()) {
+                                FancyToast.makeText(MainActivity.this, "Login successfully !!!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false);
+                                startActivity(new Intent(MainActivity.this, NoteActivity.class));
+                            } else {
+                                user.sendEmailVerification()
+                                        .addOnCompleteListener(task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                FancyToast.makeText(MainActivity.this,
+                                                        "Login success ! Please check your email to verify your account !",
+                                                        FancyToast.LENGTH_LONG, FancyToast.INFO, false);
+                                                binding.progressBar.setVisibility(View.GONE);
+                                            }
+                                        });
+                            }
+
                         }
                     } else {
-                        Toast.makeText(MainActivity.this, "Failed to login ! Please check your credentials", Toast.LENGTH_SHORT).show();
+                        FancyToast.makeText(MainActivity.this,
+                                "Login failed ! Wrong email or password !",
+                                FancyToast.LENGTH_LONG, FancyToast.INFO, false);
                         this.binding.progressBar.setVisibility(View.GONE);
                     }
                 });

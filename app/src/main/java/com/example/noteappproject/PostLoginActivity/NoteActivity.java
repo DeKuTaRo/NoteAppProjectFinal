@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
+import com.example.noteappproject.ReLoginActivity.ChangePasswordActivity;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityNoteBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -140,7 +141,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
             }
         });
-
     }
 
     private void SetUpNoteRecyclerView() {

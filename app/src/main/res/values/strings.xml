@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Note App Project</string>
+    <string name="tbt_note">TBT Note</string>
+    <string name="tbt_note_application">TBT Note Application</string>
+    <string name="app_title">TBT S\'Note</string>
+    <string name="app_sub_title">TBT Super Note Application</string>
 </resources>

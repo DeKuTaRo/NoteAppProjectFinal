@@ -3,6 +3,7 @@ package com.example.noteappproject.ReLoginActivity;
 import static java.util.Objects.requireNonNull;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
@@ -11,22 +12,22 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.noteappproject.Models.User;
+import com.example.noteappproject.PostLoginActivity.NoteActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityRegisterUserBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
-
-import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.shashank.sony.fancytoastlib.FancyToast;
 
 public class RegisterUser extends AppCompatActivity implements View.OnClickListener{
-
     private ActivityRegisterUserBinding binding;
 
-    private EditText fullName_input, age_input, email_input, password_input, password_input_rewrite;
+    private EditText fullName_input, email_input, password_input, password_input_rewrite;
     private ProgressBar progressBar;
 
     private FirebaseAuth mAuth;
@@ -38,6 +39,37 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
             currentUser.reload();
+
+            // Create the object of
+            // AlertDialog Builder class
+            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterUser.this);
+            // Set Alert Title
+            builder.setTitle("Register Alert !");
+            // Set the message show for the Alert time
+            builder.setMessage("You need to logout first ?");
+            // Set Cancelable false
+            // for when the user clicks on the outside
+            // the Dialog Box then it will remain show
+            builder.setCancelable(false);
+
+            // Set the positive button with yes name
+            // OnClickListener method is use of
+            // DialogInterface interface.
+            builder.setPositiveButton( "Yes",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    // When the user click yes button
+                    // then app will close
+                    finish();
+                }
+            });
+
+            // Create the Alert dialog
+            AlertDialog alertDialog = builder.create();
+
+            // Show the Alert Dialog box
+            alertDialog.show();
         }
     }
 
@@ -51,15 +83,23 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
 
         this.mAuth = FirebaseAuth.getInstance();
 
-        this.binding.banner.setOnClickListener(this);
-        this.binding.registerUser.setOnClickListener(this);
 
+
+        BindingView();
+        SetOnClickEvent();
+    }
+
+    private void BindingView() {
         this.fullName_input = this.binding.fullNameInput;
         this.email_input = this.binding.emailInput;
         this.password_input = this.binding.passwordInput;
         this.password_input_rewrite= this.binding.passwordInputRewrite;
-
         this.progressBar = this.binding.progressBar;
+    }
+
+    private void SetOnClickEvent() {
+        this.binding.banner.setOnClickListener(this);
+        this.binding.registerUser.setOnClickListener(this);
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -67,7 +107,7 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.banner:
-                startActivity(new Intent(this, MainActivity.class));
+                finish();
                 break;
             case R.id.registerUser:
                 registerUser();
@@ -86,7 +126,6 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
             fullName_input.requestFocus();
             return;
         }
-
 
         if (emailValue.isEmpty()) {
             email_input.setError("Email is required");
@@ -118,33 +157,46 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        //String bcryptHashPassword = BCrypt.withDefaults().hashToString(12, passwordValue.toCharArray());
-
         progressBar.setVisibility(View.VISIBLE);
 
         mAuth.createUserWithEmailAndPassword(emailValue, passwordValue)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        User user = new User(fullNameValue, emailValue, passwordValue, "");
+                        User user = new User(fullNameValue, emailValue);
 
-                        FirebaseDatabase.getInstance().getReference("Users")
-                                .child(requireNonNull(requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()))
+                        // Tạo bảng Users/Account/Email
+                        FirebaseDatabase.getInstance().getReference("Users/Account/"+emailValue+"/")
                                 .setValue(user)
                                 .addOnCompleteListener(task1 -> {
-
                                     if (task1.isSuccessful()) {
-                                        Toast.makeText(RegisterUser.this, "User has been register successfully", Toast.LENGTH_SHORT).show();
+                                        FancyToast.makeText(RegisterUser.this,
+                                                "User account has been register successfully !",
+                                                FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false);
                                         progressBar.setVisibility(View.VISIBLE);
-                                        startActivity(new Intent(RegisterUser.this, MainActivity.class));
+
+//                                        Intent intent_verify_otp = new Intent(RegisterUser.this, VerifyOTP.class);
+//                                        intent_verify_otp.putExtra(RegisterUser.INTENT_EXTRAS_KEY_PHONE_NUMBER, phoneNumberValue);
+//                                        intent_verify_otp.putExtra(RegisterUser.INTENT_EXTRAS_KEY_EMAIL, emailValue);
+//
+//                                        startActivity(intent_verify_otp);
+
+                                        startActivity(new Intent(RegisterUser.this, NoteActivity.class));
                                     } else {
-                                        Toast.makeText(RegisterUser.this, "Failed to register ! Try again !", Toast.LENGTH_SHORT).show();
+                                        FancyToast.makeText(RegisterUser.this,
+                                                "Failed to register ! Try again !",
+                                                FancyToast.LENGTH_LONG, FancyToast.ERROR, false);
                                         progressBar.setVisibility(View.GONE);
                                     }
                                 });
                     } else {
-                        Toast.makeText(RegisterUser.this, "Failed to register", Toast.LENGTH_SHORT).show();
+                        FancyToast.makeText(RegisterUser.this,
+                                "Failed to register ! Try again !",
+                                FancyToast.LENGTH_LONG, FancyToast.ERROR, false);
                         progressBar.setVisibility(View.GONE);
                     }
                 });
     }
+
+
+
 }

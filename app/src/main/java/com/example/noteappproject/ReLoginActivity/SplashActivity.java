@@ -14,19 +14,13 @@ import com.google.firebase.auth.FirebaseUser;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
         Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                nextActivityScreen();
-            }
-        }, 2000);
+        handler.postDelayed(this::nextActivityScreen, 2000);
     }
 
     private void nextActivityScreen() {
@@ -37,6 +31,7 @@ public class SplashActivity extends AppCompatActivity {
             Intent intent = new Intent(SplashActivity.this, MainActivity.class);
             startActivity(intent);
         } else {
+            FirebaseAuth.getInstance().signOut();
             Intent intent = new Intent(SplashActivity.this, NoteActivity.class);
             startActivity(intent);
         }
