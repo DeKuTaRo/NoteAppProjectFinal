@@ -1,90 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorRecyclerView"
+    android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar"
     tools:context=".PostLoginActivity.SettingsActivity">
 
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutFontSize"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:background="@color/colorRecyclerView">
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:hint="SELECT FONT SIZE"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-        <TextView
-            android:id="@+id/changeFontTextView"
+        <AutoCompleteTextView
+            android:id="@+id/selectFontSize"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Settings font-size and font-style"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/color_primary"
-            android:background="@drawable/bg_search_note"
-            android:paddingStart="10dp"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            />
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:inputType="none"
+            android:text="Medium"
+            tools:ignore="LabelFor" />
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutFontStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutFontSize"
+        android:hint="SELECT FONT STYLE"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+        <AutoCompleteTextView
+            android:id="@+id/selectFontStyle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:inputType="none"
+            android:text="Normal"
+            tools:ignore="LabelFor" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:hint="SELECT FONT SIZE"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+    </com.google.android.material.textfield.TextInputLayout>
 
-                <AutoCompleteTextView
-                    android:id="@+id/selectFontSize"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none"/>
-
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-        <TextView
-            android:id="@+id/timeSettingTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Settings time for note in trash bin"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/color_primary"
-            android:background="@drawable/bg_search_note"
-            android:paddingStart="10dp"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            />
-
-        <TextView
-            android:id="@+id/volumeTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Change volume for note"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/color_primary"
-            android:background="@drawable/bg_search_note"
-            android:paddingStart="10dp"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            />
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
             android:id="@+id/changePassBtn"
@@ -104,5 +85,37 @@
 
     </LinearLayout>
 
+</androidx.constraintlayout.widget.ConstraintLayout>
 
-</LinearLayout>
+    <!--    android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar"-->
+
+    <!--<TextView-->
+    <!--android:id="@+id/timeSettingTextView"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_margin="10dp"-->
+    <!--android:text="Settings time for note in trash bin"-->
+    <!--android:textColor="@color/white"-->
+    <!--android:backgroundTint="@color/color_primary"-->
+    <!--android:background="@drawable/bg_search_note"-->
+    <!--android:paddingStart="10dp"-->
+    <!--android:textSize="30sp"-->
+    <!--android:textStyle="bold"-->
+    <!--    />-->
+
+    <!--<TextView-->
+    <!--android:id="@+id/volumeTextView"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_margin="10dp"-->
+    <!--android:text="Change volume for note"-->
+    <!--android:textColor="@color/white"-->
+    <!--android:backgroundTint="@color/color_primary"-->
+    <!--android:background="@drawable/bg_search_note"-->
+    <!--android:paddingStart="10dp"-->
+    <!--android:textSize="30sp"-->
+    <!--android:textStyle="bold"-->
+    <!--    />-->
+    <!--    </LinearLayout>-->
+
+
