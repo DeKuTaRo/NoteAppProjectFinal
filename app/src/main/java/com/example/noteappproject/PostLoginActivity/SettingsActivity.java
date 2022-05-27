@@ -50,7 +50,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     TextInputLayout layoutFontSize, layoutFontStyle;
     AutoCompleteTextView selectFontSize, selectFontStyle;
     String[] itemFontSize = {"Small", "Medium", "Big", "Very Big"};
-    String[] itemFontStyle = {"Bold", "Italic", "Underline"};
+    String[] itemFontStyle = {"Normal", "Bold", "Italic", "Underline"};
 
     ArrayAdapter<String> arrayFontSizeAdapter, arrayFontStyleAdapter;
 
@@ -63,9 +63,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = "Medium";
         fontStyleItem = "Normal";
 
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
         final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userEmail).child("Settings");
+        reference.setValue(settings);
 
         changePassBtn = findViewById(R.id.changePassBtn);
         changePassBtn.setOnClickListener(this);
@@ -128,15 +130,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-//            case R.id.changeFontTextView :
-//                Toast.makeText(this, "change Font", Toast.LENGTH_SHORT).show();
-//                break;
-//            case R.id.timeSettingTextView :
-//                Toast.makeText(this, "time Settings", Toast.LENGTH_SHORT).show();
-//                break;
-//            case R.id.volumeTextView :
-//                Toast.makeText(this, "volume Setting", Toast.LENGTH_SHORT).show();
-//                break;
             case R.id.changePassBtn :
                 startActivity(new Intent(this, ChangePasswordActivity.class));
                 break;
