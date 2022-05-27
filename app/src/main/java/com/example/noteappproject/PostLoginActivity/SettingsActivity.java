@@ -55,16 +55,23 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     ArrayAdapter<String> arrayFontSizeAdapter, arrayFontStyleAdapter;
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
+        selectFontSize.setAdapter(arrayFontSizeAdapter);
+
+        arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
+        selectFontStyle.setAdapter(arrayFontStyleAdapter);
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         this.mAuth = FirebaseAuth.getInstance();
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
-        final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
-        rootNode = FirebaseDatabase.getInstance();
-        reference = rootNode.getReference("Users").child(userEmail).child("Settings");
-        reference.setValue(settings);
 
         changePassBtn = findViewById(R.id.changePassBtn);
         changePassBtn.setOnClickListener(this);
@@ -81,8 +88,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
 
-        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
-        selectFontSize.setAdapter(arrayFontSizeAdapter);
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
+        rootNode = FirebaseDatabase.getInstance();
+        reference = rootNode.getReference("Users").child(userEmail).child("Settings");
+        reference.setValue(settings);
 
         selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
