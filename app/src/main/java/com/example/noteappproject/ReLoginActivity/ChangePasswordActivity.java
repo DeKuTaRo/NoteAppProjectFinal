@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.noteappproject.databinding.ActivityChangePasswordBinding;
@@ -28,7 +29,33 @@ public class ChangePasswordActivity extends AppCompatActivity implements View.On
         if (this.user == null) {
             // Show Error Message That User need to login first before change password
             // Use alert dialoag...
-            finish();
+
+            // Create the object of
+            // AlertDialog Builder class
+            AlertDialog.Builder builder = new AlertDialog.Builder(ChangePasswordActivity.this);
+            // Set Alert Title
+            builder.setTitle("Change Password Alert !");
+            // Set the message show for the Alert time
+            builder.setMessage("You need to login first before you can change your password ?");
+            // Set Cancelable false
+            // for when the user clicks on the outside
+            // the Dialog Box then it will remain show
+            builder.setCancelable(false);
+
+            // Set the positive button with yes name
+            // OnClickListener method is use of
+            // DialogInterface interface.
+            builder.setPositiveButton( "Yes", (dialog, which) -> {
+                // When the user click yes button
+                // then app will close
+                finish();
+            });
+
+            // Create the Alert dialog
+            AlertDialog alertDialog = builder.create();
+
+            // Show the Alert Dialog box
+            alertDialog.show();
         }
     }
 
@@ -114,9 +141,9 @@ public class ChangePasswordActivity extends AppCompatActivity implements View.On
                                     }
                                 });
                     } else {
-                        Toast.makeText(ChangePasswordActivity.this, "Failed to change password, some errors has occurred", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChangePasswordActivity.this, "Failed to change password, please check your old password", Toast.LENGTH_SHORT).show();
                     }
-                });
+                }).addOnFailureListener(e -> Toast.makeText(ChangePasswordActivity.this, "Failed to change password, please check your old password", Toast.LENGTH_SHORT).show());
     }
 }
 

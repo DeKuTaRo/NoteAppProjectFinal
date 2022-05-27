@@ -1,22 +1,16 @@
 package com.example.noteappproject.ReLoginActivity;
 
-import static java.util.Objects.requireNonNull;
-
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.noteappproject.Models.User;
-import com.example.noteappproject.PostLoginActivity.NoteActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityRegisterUserBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -55,14 +49,10 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
             // Set the positive button with yes name
             // OnClickListener method is use of
             // DialogInterface interface.
-            builder.setPositiveButton( "Yes",new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    // When the user click yes button
-                    // then app will close
-                    finish();
-                }
+            builder.setPositiveButton( "Yes", (dialog, which) -> {
+                // When the user click yes button
+                // then app will close
+                finish();
             });
 
             // Create the Alert dialog
@@ -164,8 +154,8 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
                     if (task.isSuccessful()) {
                         User user = new User(fullNameValue, emailValue);
 
-                        // Tạo bảng Users/Account/Email
-                        FirebaseDatabase.getInstance().getReference("Users/Account/"+emailValue+"/")
+                        // Tạo bảng Users/Email/Account
+                        FirebaseDatabase.getInstance().getReference("Users").child(getSubEmailName(emailValue)).child("Account")
                                 .setValue(user)
                                 .addOnCompleteListener(task1 -> {
                                     if (task1.isSuccessful()) {
@@ -173,14 +163,7 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
                                                 "User account has been register successfully !",
                                                 FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false);
                                         progressBar.setVisibility(View.VISIBLE);
-
-//                                        Intent intent_verify_otp = new Intent(RegisterUser.this, VerifyOTP.class);
-//                                        intent_verify_otp.putExtra(RegisterUser.INTENT_EXTRAS_KEY_PHONE_NUMBER, phoneNumberValue);
-//                                        intent_verify_otp.putExtra(RegisterUser.INTENT_EXTRAS_KEY_EMAIL, emailValue);
-//
-//                                        startActivity(intent_verify_otp);
-
-                                        startActivity(new Intent(RegisterUser.this, NoteActivity.class));
+                                        finish();
                                     } else {
                                         FancyToast.makeText(RegisterUser.this,
                                                 "Failed to register ! Try again !",
@@ -197,6 +180,7 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
                 });
     }
 
-
-
+    public final static String getSubEmailName(String email){
+        return email.substring(0, email.indexOf("@"));
+    }
 }

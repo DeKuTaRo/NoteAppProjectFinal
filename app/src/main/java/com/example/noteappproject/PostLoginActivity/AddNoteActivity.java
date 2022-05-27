@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
+import com.example.noteappproject.ReLoginActivity.RegisterUser;
 import com.example.noteappproject.databinding.ActivityAddNoteBinding;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
@@ -75,7 +76,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private String imageUriTask, videoUriTask;
     private NoteItem noteItem;
-    private String userID;
 
     private ActivityAddNoteBinding binding;
 
@@ -190,16 +190,18 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         String colorValue = noteItem.getColor();
         String webLinkValue = noteItem.getWebLink();
 
-        userID = Objects.requireNonNull(this.mAuth.getCurrentUser()).getUid();
+        final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
-        reference = rootNode.getReference("Users").child(userID).child("NoteItems");
+        reference = rootNode.getReference("Users").child(userEmail).child("NoteItems");
 
+        final String currentTimeStamp = String.valueOf(System.currentTimeMillis());
 
         if (imageNote.getDrawable() == null) {
             noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, "", videoUriTask, webLinkValue, "");
-            reference.child(noteItem.getLabel()).setValue(noteItem);
+            reference.child(currentTimeStamp).setValue(noteItem);
         } else {
             storageImageReference = FirebaseStorage.getInstance().getReference("images");
+
             StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageUri));
             imageReference.putFile(imageUri).continueWithTask(task -> {
@@ -212,14 +214,14 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 if (task.isSuccessful()) {
                     imageUriTask = task.getResult().toString();
                     noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
-                    reference.child(noteItem.getLabel()).setValue(noteItem);
+                    reference.child(currentTimeStamp).setValue(noteItem);
                 }
             });
         }
 
         if (videoView.getVisibility() == View.GONE) {
             noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, "", webLinkValue, "");
-            reference.child(noteItem.getLabel()).setValue(noteItem);
+            reference.child(currentTimeStamp).setValue(noteItem);
         } else {
             storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
             StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
@@ -234,7 +236,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 if (task.isSuccessful()) {
                     videoUriTask = task.getResult().toString();
                     noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
-                    reference.child(noteItem.getLabel()).setValue(noteItem);
+                    reference.child(currentTimeStamp).setValue(noteItem);
                 }
             });
         }

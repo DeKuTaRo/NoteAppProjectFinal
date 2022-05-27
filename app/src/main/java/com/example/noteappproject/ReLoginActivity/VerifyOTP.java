@@ -40,8 +40,8 @@ public class VerifyOTP extends AppCompatActivity {
         Intent intent = getIntent();
 
         if ( intent != null ){
-            this.registerUser_PhoneNumber = intent.getStringExtra(RegisterUser.INTENT_EXTRAS_KEY_PHONE_NUMBER);
-            this.registerUser_Email = intent.getStringExtra(RegisterUser.INTENT_EXTRAS_KEY_EMAIL);
+//            this.registerUser_PhoneNumber = intent.getStringExtra(RegisterUser.INTENT_EXTRAS_KEY_PHONE_NUMBER);
+//            this.registerUser_Email = intent.getStringExtra(RegisterUser.INTENT_EXTRAS_KEY_EMAIL);
 
             Log.e("Test", this.registerUser_Email + this.registerUser_PhoneNumber);
         }
