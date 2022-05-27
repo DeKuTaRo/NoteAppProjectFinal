@@ -161,7 +161,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     private void DatabaseSetup() {
         this.mAuth = FirebaseAuth.getInstance();
-        String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+        String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
         if (userEmail == null){
             return;
         }

@@ -60,9 +60,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_settings);
         this.mAuth = FirebaseAuth.getInstance();
 
-        fontSizeItem = selectFontSize.getText().toString();
-        fontStyleItem = selectFontStyle.getText().toString();
-
         Settings settings = new Settings(fontSizeItem, fontStyleItem);
         final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
@@ -78,8 +75,13 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         layoutFontSize = findViewById(R.id.layoutFontSize);
         layoutFontStyle = findViewById(R.id.layoutFontStyle);
 
-        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize = findViewById(R.id.selectFontSize);
+        selectFontStyle = findViewById(R.id.selectFontStyle);
+
+        fontSizeItem = selectFontSize.getText().toString();
+        fontStyleItem = selectFontStyle.getText().toString();
+
+        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize.setAdapter(arrayFontSizeAdapter);
 
         selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -92,7 +94,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         });
 
         arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
-        selectFontStyle = findViewById(R.id.selectFontStyle);
         selectFontStyle.setAdapter(arrayFontStyleAdapter);
 
         selectFontStyle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
