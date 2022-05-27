@@ -146,7 +146,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void setOnClickEvent() {
-        imageUpdate.setOnClickListener(this);
+        imageBack.setOnClickListener(this);
         imageUpdate.setOnClickListener(this);
         imageSetPassword.setOnClickListener(this);
         imageNotification.setOnClickListener(this);
@@ -262,7 +262,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.imageBack:
-                finishActivity(UPDATE_NOTE);
+                finish();
                 break;
             case R.id.imageUpdate:
                 updateData();

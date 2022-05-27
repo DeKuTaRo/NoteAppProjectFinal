@@ -1,6 +1,7 @@
 package com.example.noteappproject.ReLoginActivity;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
@@ -10,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.noteappproject.PostLoginActivity.NoteActivity;
@@ -130,20 +132,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         if ( user != null ){
                             if (user.isEmailVerified()) {
-                                FancyToast.makeText(MainActivity.this, "Login successfully !!!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false);
                                 startActivity(new Intent(MainActivity.this, NoteActivity.class));
                             } else {
-                                user.sendEmailVerification()
-                                        .addOnCompleteListener(task1 -> {
-                                            if (task1.isSuccessful()) {
-                                                FancyToast.makeText(MainActivity.this,
-                                                        "Login success ! Please check your email to verify your account !",
-                                                        FancyToast.LENGTH_LONG, FancyToast.INFO, false);
-                                                binding.progressBar.setVisibility(View.GONE);
-                                            }
-                                        });
-                            }
+                                binding.progressBar.setVisibility(View.GONE);
 
+                                // Create the object of
+                                // AlertDialog Builder class
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                // Set Alert Title
+                                builder.setTitle("Login !");
+                                // Set the message show for the Alert time
+                                builder.setMessage("Your account haven't been activated !");
+                                // Set Cancelable false
+                                // for when the user clicks on the outside
+                                // the Dialog Box then it will remain show
+                                builder.setCancelable(false);
+
+                                // Set the positive button with yes name
+                                // OnClickListener method is use of
+                                // DialogInterface interface.
+                                builder.setPositiveButton( "Send activated email", (dialog, which) -> {
+                                    // When the user click yes button
+                                    // then app will close
+                                    user.sendEmailVerification()
+                                            .addOnCompleteListener(task1 -> {
+                                                if (task1.isSuccessful()) {
+                                                    Toast.makeText(MainActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                });
+
+                                builder.setNegativeButton("Later", (dialog, which) -> {
+                                    startActivity(new Intent(MainActivity.this, NoteActivity.class));
+                                });
+
+                                // Create the Alert dialog
+                                AlertDialog alertDialog = builder.create();
+
+                                // Show the Alert Dialog box
+                                alertDialog.show();
+                            }
                         }
                     } else {
                         FancyToast.makeText(MainActivity.this,

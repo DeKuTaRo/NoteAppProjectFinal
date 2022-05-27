@@ -154,7 +154,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.imageBack:
-                finishActivity(ADD_NOTE);
+                finish();
                 break;
             case R.id.imageSave:
                 sendDataToDatabase();

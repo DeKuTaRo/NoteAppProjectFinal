@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -77,7 +78,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         }
 
         // Check xem kích hoạt chưa
+        assert user != null;
         this.isActivated = user.isEmailVerified();
+        Log.e("TEST", "Is actived: "+ this.isActivated);
     }
 
     @Override
@@ -89,8 +92,41 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         // Open add note activity
         this.binding.imageAddNoteMain.setOnClickListener(v -> {
-            Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
-            startActivityForResult(i, 101);
+            if ( !this.isActivated && this.list_NoteItem.size() >= 5 ){
+                // Create the object of
+                // AlertDialog Builder class
+                AlertDialog.Builder builder = new AlertDialog.Builder(NoteActivity.this);
+                // Set Alert Title
+                builder.setTitle("Add Note Alert !");
+                // Set the message show for the Alert time
+                builder.setMessage("Please active your account to add more note ?");
+                // Set Cancelable false
+                // for when the user clicks on the outside
+                // the Dialog Box then it will remain show
+                builder.setCancelable(false);
+
+                // Set the positive button with yes name
+                // OnClickListener method is use of
+                // DialogInterface interface.
+                builder.setPositiveButton( "Send activated mail", (dialog, which) -> Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).sendEmailVerification()
+                        .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                Toast.makeText(NoteActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
+                                dialog.dismiss();
+                            }
+                        }));
+
+                builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
+
+                // Create the Alert dialog
+                AlertDialog alertDialog = builder.create();
+
+                // Show the Alert Dialog box
+                alertDialog.show();
+            } else {
+                Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
+                startActivityForResult(i, 101);
+            }
         });
 
         InitializeNoteRecyclerView();
@@ -125,7 +161,10 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     private void DatabaseSetup() {
         this.mAuth = FirebaseAuth.getInstance();
-        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+        if (userEmail == null){
+            return;
+        }
         userEmail = RegisterUser.getSubEmailName(userEmail);
         this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
 
@@ -234,9 +273,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().insert(new_notes);
-//                list_NoteItem.clear();
-//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
                 list_NoteItem.add(0, new_notes);
                 recyclerViewNoteCustomAdapter.notifyItemInserted(0);
             }
@@ -431,6 +467,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         return super.onOptionsItemSelected(item);
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void SwitchLayout(MenuItem item) {
         if ( this.recyclerViewNoteCustomAdapter.getType() == RecyclerViewNoteCustomAdapter.TYPE_LIST_VIEW ){
             this.recyclerViewNoteCustomAdapter.setType(RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW);

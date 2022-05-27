@@ -3,13 +3,11 @@ package com.example.noteappproject.Models;
 public class User {
     private String fullName;
     private String email;
-    private boolean isActivated;
     private String avatarPath;
 
     public User(String fullName, String email) {
         this.fullName = fullName;
         this.email = email;
-        this.isActivated = false;
         this.avatarPath = "";
     }
 
@@ -39,13 +37,5 @@ public class User {
 
     public void setAvatarPath(String avatarPath) {
         this.avatarPath = avatarPath;
-    }
-
-    public boolean isActivated() {
-        return isActivated;
-    }
-
-    public void setActivated(boolean activated) {
-        isActivated = activated;
     }
 }
