@@ -23,7 +23,7 @@
         android:theme="@style/Theme.Design.Light.NoActionBar"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".LabalManagerActivity"
+            android:name=".PostLoginActivity.LabelManagerActivity"
             android:exported="false" />
         <activity
             android:name=".AdvancedFunction.TrashBinActivity"

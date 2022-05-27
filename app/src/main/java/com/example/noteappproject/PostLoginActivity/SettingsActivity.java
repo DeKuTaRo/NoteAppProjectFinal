@@ -60,8 +60,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_settings);
         this.mAuth = FirebaseAuth.getInstance();
 
-        fontSizeItem = "Medium";
-        fontStyleItem = "Normal";
+        fontSizeItem = selectFontSize.getText().toString();
+        fontStyleItem = selectFontStyle.getText().toString();
 
         Settings settings = new Settings(fontSizeItem, fontStyleItem);
         final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
