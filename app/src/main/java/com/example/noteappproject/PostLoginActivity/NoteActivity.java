@@ -90,47 +90,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         View viewRoot = this.binding.getRoot();
         setContentView(viewRoot);
 
-        // Open add note activity
-        this.binding.imageAddNoteMain.setOnClickListener(v -> {
-            if ( !this.isActivated && this.list_NoteItem.size() >= 5 ){
-                // Create the object of
-                // AlertDialog Builder class
-                AlertDialog.Builder builder = new AlertDialog.Builder(NoteActivity.this);
-                // Set Alert Title
-                builder.setTitle("Add Note Alert !");
-                // Set the message show for the Alert time
-                builder.setMessage("Please active your account to add more note ?");
-                // Set Cancelable false
-                // for when the user clicks on the outside
-                // the Dialog Box then it will remain show
-                builder.setCancelable(false);
-
-                // Set the positive button with yes name
-                // OnClickListener method is use of
-                // DialogInterface interface.
-                builder.setPositiveButton( "Send activated mail", (dialog, which) -> Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).sendEmailVerification()
-                        .addOnCompleteListener(task1 -> {
-                            if (task1.isSuccessful()) {
-                                Toast.makeText(NoteActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
-                                dialog.dismiss();
-                            }
-                        }));
-
-                builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
-
-                // Create the Alert dialog
-                AlertDialog alertDialog = builder.create();
-
-                // Show the Alert Dialog box
-                alertDialog.show();
-            } else {
-                Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
-                startActivityForResult(i, 101);
-            }
-        });
-
         InitializeNoteRecyclerView();
         DatabaseSetup();
+        SetOnClickEvent();
         SetUpNoteRecyclerView();
         SearchViewInputText();
     }
@@ -226,6 +188,48 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         });
     }
 
+    private void SetOnClickEvent() {
+        // Open add note activity
+        this.binding.imageAddNoteMain.setOnClickListener(v -> {
+            if ( !this.isActivated && this.list_NoteItem.size() >= 5 ){
+                // Create the object of
+                // AlertDialog Builder class
+                AlertDialog.Builder builder = new AlertDialog.Builder(NoteActivity.this);
+                // Set Alert Title
+                builder.setTitle("Add Note Alert !");
+                // Set the message show for the Alert time
+                builder.setMessage("Please active your account to add more note ?");
+                // Set Cancelable false
+                // for when the user clicks on the outside
+                // the Dialog Box then it will remain show
+                builder.setCancelable(false);
+
+                // Set the positive button with yes name
+                // OnClickListener method is use of
+                // DialogInterface interface.
+                builder.setPositiveButton( "Send activated mail", (dialog, which) -> Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).sendEmailVerification()
+                        .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                Toast.makeText(NoteActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
+                                dialog.dismiss();
+                            }
+                        }));
+
+                builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
+
+                // Create the Alert dialog
+                AlertDialog alertDialog = builder.create();
+
+                // Show the Alert Dialog box
+                alertDialog.show();
+            } else {
+                Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
+                startActivityForResult(i, 101);
+            }
+        });
+
+    }
+
     private void SetUpNoteRecyclerView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         this.binding.recycleView.setLayoutManager(layoutManager);
@@ -273,33 +277,33 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().insert(new_notes);
-                list_NoteItem.add(0, new_notes);
-                recyclerViewNoteCustomAdapter.notifyItemInserted(0);
+//                list_NoteItem.add(0, new_notes);
+//                recyclerViewNoteCustomAdapter.notifyItemInserted(0);
             }
         } else if (requestCode == 102) {
             if (resultCode == UpdateActivity.UPDATE_NOTE) {
                 assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().update(new_notes.getID(), new_notes.getLabel(), new_notes.getSubtitle(), new_notes.getText_content(), new_notes.getDate(), new_notes.getColor(), new_notes.getImagePath(), new_notes.getWebLink());
-                list_NoteItem.clear();
-                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+//                list_NoteItem.clear();
+//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
+//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
             else if (resultCode == UpdateActivity.SET_PASSWORD) {
                 assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
-                list_NoteItem.clear();
-                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+//                list_NoteItem.clear();
+//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
+//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
             else if (resultCode == UpdateActivity.REMOVE_PASSWORD) {
                 assert data != null;
                 NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
                 RoomDB.getInstance(this).mainDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
-                list_NoteItem.clear();
-                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+//                list_NoteItem.clear();
+//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
+//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             }
         }
     }
@@ -395,13 +399,30 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     RoomDB.getInstance(this).mainDAO().pin(selectedNote.getID(), true);
                     Toast.makeText(NoteActivity.this, "Pinned", Toast.LENGTH_SHORT).show();
                 }
-                this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+
+                int i = 0;
+                for (NoteItem noteItem : this.list_NoteItem) {
+                    if (noteItem.getID() == selectedNote.getID()) {
+                        this.recyclerViewNoteCustomAdapter.notifyItemChanged(i);
+                        break;
+                    }
+                    i++;
+                }
                 return true;
             case R.id.delete:
                 onClickDeleteItem(selectedNote);
                 RoomDB.getInstance(this).mainDAO().delete(selectedNote);
                 list_NoteItem.remove(selectedNote);
-                this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+
+                int j = 0;
+                for (NoteItem noteItem : this.list_NoteItem) {
+                    if (noteItem.getID() == selectedNote.getID()) {
+                        this.recyclerViewNoteCustomAdapter.notifyItemRemoved(j);
+                        this.recyclerViewNoteCustomAdapter.notifyItemRangeChanged(j, this.list_NoteItem.size() - 1);
+                        break;
+                    }
+                    j++;
+                }
                 return true;
             default:
                 return false;
