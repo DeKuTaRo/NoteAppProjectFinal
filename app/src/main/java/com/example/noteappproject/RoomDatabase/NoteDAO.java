@@ -14,7 +14,7 @@ import java.util.List;
 
 
 @Dao
-public interface MainDAO {
+public interface NoteDAO {
 
     @Insert(onConflict = REPLACE)
     void insert(NoteItem noteItem);
@@ -33,4 +33,7 @@ public interface MainDAO {
 
     @Query("UPDATE notes SET pinned = :pin WHERE ID = :id ")
     void pin(int id, boolean pin);
+
+    @Query("DELETE FROM notes WHERE created_at = :created_at ")
+    void deleteByCreatedAt(long created_at);
 }

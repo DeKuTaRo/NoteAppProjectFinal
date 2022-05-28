@@ -2,6 +2,7 @@ package com.example.noteappproject.CustomAdapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,15 @@ public class RecyclerViewLabelCustomAdapter extends RecyclerView.Adapter<Recycle
     private final Context context;
     private final List<NoteLabel> dataSource;
 
+    public interface IOnLongItemClickListener{
+        void ItemLongClicked(View v, int position);
+    }
+
+    private IOnLongItemClickListener iOnLongItemClickListener;
+
+    public void setOnLongItemClickListener(IOnLongItemClickListener onLongItemClickListener){
+        this.iOnLongItemClickListener = onLongItemClickListener;
+    }
 
     public RecyclerViewLabelCustomAdapter(Context context, List<NoteLabel> dataSource) {
         this.context = context;
@@ -53,6 +63,13 @@ public class RecyclerViewLabelCustomAdapter extends RecyclerView.Adapter<Recycle
             this.binding.checkBoxLabel.setChecked(noteLabel.isCheck());
 
             this.binding.checkBoxLabel.setOnClickListener(v -> dataSource.get(position).setCheck(!noteLabel.isCheck()));
+            this.binding.getRoot().setOnLongClickListener(view -> {
+                if (iOnLongItemClickListener != null) {
+                    iOnLongItemClickListener.ItemLongClicked(view, position);
+                }
+
+                return true;
+            });
         }
     }
 }

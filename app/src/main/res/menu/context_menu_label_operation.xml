@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/contextMenu_EditLabel"
+        android:title="Edit label"
+        />
+
+    <item
+        android:id="@+id/contextMenu_DeleteLabel"
+        android:title="Delete label"
+        />
+</menu>
