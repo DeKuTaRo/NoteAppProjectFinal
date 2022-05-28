@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -38,6 +39,7 @@ import androidx.core.content.ContextCompat;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityUpdateBinding;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -72,8 +74,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     final Calendar calendar = Calendar.getInstance();
 
-    private DatabaseReference reference;
-    private StorageReference storageImageReference, storageVideoReference;
+    private FirebaseAuth mAuth;
+    DatabaseReference reference;
+    StorageReference storageImageReference, storageVideoReference;
     private FirebaseDatabase rootNode;
     private FirebaseStorage storage;
     private String userID;
@@ -105,6 +108,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         View viewRoot = this.binding.getRoot();
         setContentView(viewRoot);
 
+        this.mAuth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
         noteItem = (NoteItem) getIntent().getSerializableExtra(NoteActivity.KEY_SENDING_NOTE_ITEM);
 
@@ -397,6 +401,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     private void setSubtitleIndicator() {
         ColorDrawable colorDrawable = (ColorDrawable) viewSubtitleIndicator_update.getBackground();
+
         colorDrawable.setColor(Color.parseColor(selectedNoteColor));
     }
 
@@ -505,120 +510,69 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     @SuppressLint("ShowToast")
     public void updateData() {
-        int id = noteItem.getID();
-        idNote = noteItem.getLabel();
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail()));
+        reference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
 
-        noteItem.setColor(selectedNoteColor);
+        final String currentTimeStamp = String.valueOf(noteItem.getCreated_at());
 
         label = label_update.getText().toString().trim();
         textContent = textContent_update.getText().toString().trim();
         subtitle = subtitle_update.getText().toString().trim();
         mdate = textDateTime_update.getText().toString().trim();
-        color = noteItem.getColor();
-        image = noteItem.getImagePath();
-        video = noteItem.getVideoPath();
-        web = textWebURL_update.getText().toString().trim();
 
-
-        userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-        reference = FirebaseDatabase.getInstance().getReference("Users").
-                child(userID).child("NoteItems");
-
-        if (imageNote_update.getDrawable() == null && videoView_update.getVisibility() == View.GONE) {
-            noteItem = new NoteItem(id, label, subtitle, textContent, mdate, color, "", "", web);
-            reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                    snapshot.getRef().child("id").setValue(id);
-                    snapshot.getRef().child("label").setValue(label);
-                    snapshot.getRef().child("subtitle").setValue(subtitle);
-                    snapshot.getRef().child("date").setValue(mdate);
-                    snapshot.getRef().child("color").setValue(color);
-                    snapshot.getRef().child("imagePath").setValue("");
-                    snapshot.getRef().child("videoPath").setValue("");
-                    snapshot.getRef().child("webLink").setValue(web);
-
-                    Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                }
-            });
-
+        if (layoutWebURL_update.getVisibility() == View.VISIBLE) {
+            noteItem.setWebLink(textWebURL_update.getText().toString());
         }
-        else {
-            storageImageReference = FirebaseStorage.getInstance().getReference("images");
+
+        if (imageNote_update.getDrawable() == null || imageNote_update.getVisibility() == View.GONE) {
+            noteItem.setImagePath("");
+        } else {
+            StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
+
             StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageUriUpdate));
-
             imageReference.putFile(imageUriUpdate).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
-                    throw task.getException();
+                    throw Objects.requireNonNull(task.getException());
                 }
 
                 return imageReference.getDownloadUrl();
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     imageUriTaskUpdate = task.getResult().toString();
-                    noteItem = new NoteItem(id, label, subtitle, textContent, mdate, color, imageUriTaskUpdate, videoUriTaskUpdate, web);
-                    reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                            snapshot.getRef().child("id").setValue(id);
-                            snapshot.getRef().child("label").setValue(label);
-                            snapshot.getRef().child("subtitle").setValue(subtitle);
-                            snapshot.getRef().child("date").setValue(mdate);
-                            snapshot.getRef().child("color").setValue(color);
-                            snapshot.getRef().child("imagePath").setValue(imageUriTaskUpdate);
-                            snapshot.getRef().child("videoPath").setValue(videoUriTaskUpdate);
-                            snapshot.getRef().child("webLink").setValue(web);
-
-                        }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    noteItem.setImagePath(imageUriTaskUpdate);
                 }
             });
+        }
 
-            storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+        if (videoView_update.getVisibility() == View.GONE) {
+            noteItem.setVideoPath("");
+        } else {
+            StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
             StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(videoUriUpdate));
             videoReference.putFile(videoUriUpdate).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
-                    throw task.getException();
+                    throw Objects.requireNonNull(task.getException());
                 }
 
                 return videoReference.getDownloadUrl();
             }).addOnCompleteListener(task -> {
-                videoUriTaskUpdate = task.getResult().toString();
-                noteItem = new NoteItem(id, label, subtitle, textContent, mdate, color, imageUriTaskUpdate, videoUriTaskUpdate, web);
-                reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                        snapshot.getRef().child("id").setValue(id);
-                        snapshot.getRef().child("label").setValue(label);
-                        snapshot.getRef().child("subtitle").setValue(subtitle);
-                        snapshot.getRef().child("date").setValue(mdate);
-                        snapshot.getRef().child("color").setValue(color);
-                        snapshot.getRef().child("imagePath").setValue(imageUriTaskUpdate);
-                        snapshot.getRef().child("videoPath").setValue(videoUriTaskUpdate);
-                        snapshot.getRef().child("webLink").setValue(web);
-
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                if (task.isSuccessful()) {
+                    videoUriTaskUpdate = task.getResult().toString();
+                    noteItem.setVideoPath(videoUriTaskUpdate);
+                }
             });
         }
+
+        noteItem.setLabel(label);
+        noteItem.setText_content(textContent);
+        noteItem.setSubtitle(subtitle);
+        noteItem.setDate(mdate);
+        noteItem.setColor(selectedNoteColor);
+
+        reference.child(currentTimeStamp).setValue(noteItem);
+
         Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent();

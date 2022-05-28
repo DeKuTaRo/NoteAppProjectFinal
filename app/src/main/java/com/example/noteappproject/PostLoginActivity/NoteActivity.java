@@ -73,7 +73,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private int selectedPosition;
 
     private boolean passwordVisible;
-
+    private String userEmail;
     // RecyclerView
     private List<NoteItem> list_NoteItem;
     private RecyclerViewNoteCustomAdapter recyclerViewNoteCustomAdapter;
@@ -135,9 +135,11 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     }
 
     private void DatabaseSetup() {
-        this.mAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
-        String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+        if (mAuth.getCurrentUser() != null) {
+            userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+        }
 
         if (userEmail == null){
             return;
@@ -409,7 +411,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             case R.id.delete:
                 onClickDeleteItem(selectedNote);
 
-                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
+//                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
+                RoomDB.getInstance(this).noteDAO().delete(selectedNote);
+
                 this.list_NoteItem.remove(selectedNote);
                 this.databaseReference.child(String.valueOf(selectedNote.getCreated_at())).removeValue().addOnCompleteListener(task -> {
                     if (task.isSuccessful()){
@@ -439,26 +443,30 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
-
-            }));
+//            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
+//
+//            }));
+            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
         }
-        else {
-            databaseReference.child(noteID).removeValue((error, ref) -> {
-
-            });
-        }
+//        else {
+//            databaseReference.child(noteID).removeValue((error, ref) -> {
+//
+//            });
+//        }
         if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
+//            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
+//
+//            }));
+            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
 
-            }));
         }
-        else {
-            databaseReference.child(noteID).removeValue((error, ref) -> {
-
-            });
-        }
+//        else {
+//            databaseReference.child(noteID).removeValue((error, ref) -> {
+//
+//            });
+//        }
+        databaseReference.child(noteID).removeValue();
 
         Toast.makeText(NoteActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
     }

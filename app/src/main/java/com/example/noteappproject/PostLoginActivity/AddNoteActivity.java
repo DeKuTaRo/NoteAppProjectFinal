@@ -183,33 +183,12 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
         noteItem = new NoteItem();
 
-        noteItem.setLabel(labelValue);
-        noteItem.setSubtitle(textContentValue);
-        noteItem.setText_content(textContentValue);
-        noteItem.setDate(dateTimeValue);
-        noteItem.setColor(selectedNoteColor);
-
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
         }
 
-        String dateValue = noteItem.getDate();
-        String colorValue = noteItem.getColor();
-        String webLinkValue = noteItem.getWebLink();
-
-        // Lấy current time làm ID
-        long created_at = System.currentTimeMillis();
-        noteItem.setCreated_at(created_at);
-        final String currentTimeStamp = String.valueOf(created_at);
-
-        if (imageNote.getDrawable() == null) {
-            // Nếu không có hình ????
+        if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE) {
             noteItem.setImagePath("");
-            noteItem.setVideoPath(videoUriTask);
-            noteItem.setWebLink(webLinkValue);
-            noteItem.setPasswordNote("");
-
-            this.databaseReference.child(currentTimeStamp).setValue(noteItem);
         } else {
             StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
 
@@ -224,15 +203,13 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     imageUriTask = task.getResult().toString();
-                    noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
-                    this.databaseReference.child(currentTimeStamp).setValue(noteItem);
+                    noteItem.setImagePath(imageUriTask);
                 }
             });
         }
 
         if (videoView.getVisibility() == View.GONE) {
-            noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, "", webLinkValue, "");
-            this.databaseReference.child(currentTimeStamp).setValue(noteItem);
+            noteItem.setVideoPath("");
         } else {
             StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
             StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
@@ -246,11 +223,24 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     videoUriTask = task.getResult().toString();
-                    noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
-                    this.databaseReference.child(currentTimeStamp).setValue(noteItem);
+                    noteItem.setVideoPath(videoUriTask);
                 }
             });
         }
+
+        noteItem.setLabel(labelValue);
+        noteItem.setSubtitle(subtitleValue);
+        noteItem.setText_content(textContentValue);
+        noteItem.setDate(dateTimeValue);
+        noteItem.setColor(selectedNoteColor);
+        noteItem.setPasswordNote("");
+
+        // Lấy current time làm ID
+        long created_at = System.currentTimeMillis();
+        noteItem.setCreated_at(created_at);
+        final String currentTimeStamp = String.valueOf(created_at);
+
+        databaseReference.child(currentTimeStamp).setValue(noteItem);
 
         RoomDB.getInstance(this).noteDAO().insert(noteItem);
         Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();

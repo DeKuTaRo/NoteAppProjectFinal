@@ -50,17 +50,16 @@ public class NoteItem implements Serializable {
 
     }
 
-    public NoteItem(int ID, String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink) {
-        this.ID = ID;
-        this.label = label;
-        this.subtitle = subtitle;
-        this.text_content = text_content;
-        this.date = date;
-        this.color = color;
-        this.imagePath = imagePath;
-        this.videoPath = videoPath;
-        this.webLink = webLink;
-    }
+//    public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink) {
+//        this.label = label;
+//        this.subtitle = subtitle;
+//        this.text_content = text_content;
+//        this.date = date;
+//        this.color = color;
+//        this.imagePath = imagePath;
+//        this.videoPath = videoPath;
+//        this.webLink = webLink;
+//    }
 
 
     public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink, String passwordNote) {
@@ -75,8 +74,7 @@ public class NoteItem implements Serializable {
         this.passwordNote = passwordNote;
     }
 
-    public NoteItem(int ID, String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink, boolean pinned, String passwordNote, long created_at) {
-        this.ID = ID;
+    public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink, String passwordNote, long created_at) {
         this.label = label;
         this.subtitle = subtitle;
         this.text_content = text_content;

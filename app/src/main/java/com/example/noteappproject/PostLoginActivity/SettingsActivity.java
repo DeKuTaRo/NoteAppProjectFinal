@@ -60,11 +60,41 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     protected void onResume() {
         super.onResume();
 
+        this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
+
+                if (settings != null) {
+                    fontSizeDB = settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize.setAdapter(arrayFontSizeAdapter);
 
         arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
         selectFontStyle.setAdapter(arrayFontStyleAdapter);
+
+        Settings settings = new Settings();
+
+        if (!fontSizeDB.equals(fontSizeItem)) {
+            settings.setFontSize(fontSizeDB);
+        }
+
+        if (!fontStyleDB.equals(fontStyleItem)){
+            settings.setFontStyle(fontStyleDB);
+        }
+
+        fontSizeItem = selectFontSize.getText().toString();
+        fontStyleItem = selectFontStyle.getText().toString();
 
     }
 
@@ -95,37 +125,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userEmail).child("Settings");
 
-        this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Settings settings = snapshot.getValue(Settings.class);
-
-                if (settings != null) {
-                    fontSizeDB = settings.getFontSize();
-                    fontStyleDB = settings.getFontStyle();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        if (!fontSizeDB.equals(fontSizeItem)) {
-            selectFontSize.setText(fontSizeDB);
-        }
-
-        if (!fontStyleDB.equals(fontStyleItem)){
-            selectFontStyle.setText(fontStyleDB);
-        }
-
-        fontSizeItem = selectFontSize.getText().toString();
-        fontStyleItem = selectFontStyle.getText().toString();
-
-        //ettings settings = new Settings(fontSizeItem, fontStyleItem);
         reference.setValue(settings);
-
 
         selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
