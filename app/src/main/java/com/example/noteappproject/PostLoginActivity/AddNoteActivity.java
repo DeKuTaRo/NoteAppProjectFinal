@@ -151,7 +151,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             videoView.setVideoURI(null);
             videoView.setVisibility(View.GONE);
             layoutDeleteVideo.setVisibility(View.GONE);
-            this.binding.imageRemoveVideo.setVisibility(View.GONE);
+            v.setVisibility(View.GONE);
             selectedVideoPath = "";
         });
     }

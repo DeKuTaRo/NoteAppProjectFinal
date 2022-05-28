@@ -123,7 +123,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        //ettings settings = new Settings(fontSizeItem, fontStyleItem);
         reference.setValue(settings);
 
 

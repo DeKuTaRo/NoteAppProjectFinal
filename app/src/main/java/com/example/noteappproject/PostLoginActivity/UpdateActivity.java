@@ -72,8 +72,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     final Calendar calendar = Calendar.getInstance();
 
-    DatabaseReference reference;
-    StorageReference storageImageReference, storageVideoReference;
+    private DatabaseReference reference;
+    private StorageReference storageImageReference, storageVideoReference;
     private FirebaseDatabase rootNode;
     private FirebaseStorage storage;
     private String userID;
@@ -106,7 +106,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(viewRoot);
 
         storage = FirebaseStorage.getInstance();
-        noteItem = (NoteItem) getIntent().getSerializableExtra("noteItems");
+        noteItem = (NoteItem) getIntent().getSerializableExtra(NoteActivity.KEY_SENDING_NOTE_ITEM);
 
         bindingView();
         setOnClickEvent();

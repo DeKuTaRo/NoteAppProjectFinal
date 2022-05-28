@@ -36,6 +36,8 @@ import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityNoteBinding;
 import com.example.noteappproject.utilities.StringUlti;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -409,16 +411,19 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
                 RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
                 this.list_NoteItem.remove(selectedNote);
-
-                int j = 0;
-                for (NoteItem noteItem : this.list_NoteItem) {
-                    if (noteItem.getCreated_at() == selectedNote.getCreated_at()) {
-                        this.recyclerViewNoteCustomAdapter.notifyItemRemoved(j);
-                        this.recyclerViewNoteCustomAdapter.notifyItemRangeChanged(j, this.list_NoteItem.size());
-                        break;
-                    }
-                    j++;
-                }
+                this.databaseReference.child(String.valueOf(selectedNote.getCreated_at())).removeValue().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()){
+                        int j = 0;
+                        for (NoteItem noteItem : list_NoteItem) {
+                            if (noteItem.getCreated_at() == selectedNote.getCreated_at()) {
+                                recyclerViewNoteCustomAdapter.notifyItemRemoved(j);
+                                recyclerViewNoteCustomAdapter.notifyItemRangeChanged(j, list_NoteItem.size());
+                                break;
+                            }
+                            j++;
+                        };
+                    };
+                });
                 return true;
             default:
                 return false;
