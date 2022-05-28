@@ -47,6 +47,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     private Button changePassBtn, logoutBtn;
 
     private String fontSizeItem, fontStyleItem;
+    private String fontSizeDB, fontStyleDB;
     TextInputLayout layoutFontSize, layoutFontStyle;
     AutoCompleteTextView selectFontSize, selectFontStyle;
     String[] itemFontSize = {"Small", "Medium", "Big", "Very Big"};
@@ -88,11 +89,41 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
         final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userEmail).child("Settings");
+
+        this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
+
+                if (settings != null) {
+                    fontSizeDB = settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        if (!fontSizeDB.equals(fontSizeItem)) {
+            selectFontSize.setText(fontSizeDB);
+        }
+
+        if (!fontStyleDB.equals(fontStyleItem)){
+            selectFontStyle.setText(fontStyleDB);
+        }
+
+        fontSizeItem = selectFontSize.getText().toString();
+        fontStyleItem = selectFontStyle.getText().toString();
+
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
         reference.setValue(settings);
+
 
         selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
