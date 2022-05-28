@@ -33,8 +33,9 @@ import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
-import com.example.noteappproject.ReLoginActivity.RegisterUser;
+import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityAddNoteBinding;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -69,9 +70,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     private static final int REQUEST_CODE_SELECT_VIDEO = 5;
 
     private FirebaseAuth mAuth;
-    private FirebaseDatabase rootNode;
-    private DatabaseReference reference;
-    private StorageReference storageImageReference, storageVideoReference;
+    private DatabaseReference databaseReference;
     private StorageTask mUploadTask;
 
     private String imageUriTask, videoUriTask;
@@ -90,10 +89,12 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         this.mAuth = FirebaseAuth.getInstance();
 
         bindingView();
+        setupDatabase();
         setOnClickEvent();
         initMiscellaneous();
         setSubtitleIndicator();
     }
+
 
     private void bindingView() {
         label = this.binding.label;
@@ -121,6 +122,12 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         selectedImagePath = "";
         selectedVideoPath = "";
     }
+
+    private void setupDatabase() {
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail()));
+        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
+    }
+
 
     private void setOnClickEvent() {
         imageBack.setOnClickListener(this);
@@ -177,10 +184,10 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         noteItem = new NoteItem();
 
         noteItem.setLabel(labelValue);
+        noteItem.setSubtitle(textContentValue);
         noteItem.setText_content(textContentValue);
         noteItem.setDate(dateTimeValue);
         noteItem.setColor(selectedNoteColor);
-
 
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
@@ -190,17 +197,21 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         String colorValue = noteItem.getColor();
         String webLinkValue = noteItem.getWebLink();
 
-        final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
-        rootNode = FirebaseDatabase.getInstance();
-        reference = rootNode.getReference("Users").child(userEmail).child("NoteItems");
-
-        final String currentTimeStamp = String.valueOf(System.currentTimeMillis());
+        // Lấy current time làm ID
+        long created_at = System.currentTimeMillis();
+        noteItem.setCreated_at(created_at);
+        final String currentTimeStamp = String.valueOf(created_at);
 
         if (imageNote.getDrawable() == null) {
-            noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, "", videoUriTask, webLinkValue, "");
-            reference.child(currentTimeStamp).setValue(noteItem);
+            // Nếu không có hình ????
+            noteItem.setImagePath("");
+            noteItem.setVideoPath(videoUriTask);
+            noteItem.setWebLink(webLinkValue);
+            noteItem.setPasswordNote("");
+
+            this.databaseReference.child(currentTimeStamp).setValue(noteItem);
         } else {
-            storageImageReference = FirebaseStorage.getInstance().getReference("images");
+            StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
 
             StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageUri));
@@ -214,16 +225,16 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 if (task.isSuccessful()) {
                     imageUriTask = task.getResult().toString();
                     noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
-                    reference.child(currentTimeStamp).setValue(noteItem);
+                    this.databaseReference.child(currentTimeStamp).setValue(noteItem);
                 }
             });
         }
 
         if (videoView.getVisibility() == View.GONE) {
             noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, "", webLinkValue, "");
-            reference.child(currentTimeStamp).setValue(noteItem);
+            this.databaseReference.child(currentTimeStamp).setValue(noteItem);
         } else {
-            storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+            StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
             StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(videoUri));
             videoReference.putFile(videoUri).continueWithTask(task -> {
@@ -236,16 +247,18 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 if (task.isSuccessful()) {
                     videoUriTask = task.getResult().toString();
                     noteItem = new NoteItem(labelValue, subtitleValue, textContentValue, dateValue, colorValue, imageUriTask, videoUriTask, webLinkValue, "");
-                    reference.child(currentTimeStamp).setValue(noteItem);
+                    this.databaseReference.child(currentTimeStamp).setValue(noteItem);
                 }
             });
         }
 
-        Toast.makeText(AddNoteActivity.this, "Add successful", Toast.LENGTH_SHORT).show();
+        RoomDB.getInstance(this).noteDAO().insert(noteItem);
+        Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent();
-        intent.putExtra("note", noteItem);
-        setResult(ADD_NOTE, intent);
+        intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+        intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
+
         finish();
     }
 

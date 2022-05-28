@@ -93,6 +93,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     public static final int UPDATE_NOTE = 8;
     public static final int SET_PASSWORD = 9;
     public static final int REMOVE_PASSWORD = 10;
+    public static final String KEY_SENDING_RESULT_CODE = "SENDING_RESULT_CODE";
 
     private ActivityUpdateBinding binding;
 
@@ -112,7 +113,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         setValueIntent();
         initMiscellaneous();
         setSubtitleIndicator();
-//        managerCompat = NotificationManagerCompat.from(this);
     }
 
     private void bindingView() {
@@ -622,8 +622,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent();
-        intent.putExtra("note", noteItem);
-        setResult(UPDATE_NOTE, intent);
+        intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+        intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
         finish();
     }
 
@@ -649,7 +649,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             int minute = mcurrentTime.get(Calendar.MINUTE);
 
             TimePickerDialog mTimePicker;
-            mTimePicker = new TimePickerDialog(UpdateActivity.this, (timePicker, selectedHour, selectedMinute) ->
+            mTimePicker = new TimePickerDialog(UpdateActivity.this, android.R.style.Theme_Holo_Light_Dialog_MinWidth,(timePicker, selectedHour, selectedMinute) ->
                     mtimePicker.setText( selectedHour + ":" + selectedMinute), hour, minute, true);
             mTimePicker.setTitle("Select Time");
             mTimePicker.show();
@@ -767,8 +767,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                     });
 
                     Intent intent = new Intent();
-                    intent.putExtra("note", noteItem);
-                    setResult(SET_PASSWORD, intent);
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                    intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.SET_PASSWORD);
                     finish();
 
                 })
@@ -803,8 +804,10 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                     });
 
                     Intent intent = new Intent();
-                    intent.putExtra("note", noteItem);
-                    setResult(REMOVE_PASSWORD, intent);
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                    intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.REMOVE_PASSWORD);
+
                     finish();
                 });
 

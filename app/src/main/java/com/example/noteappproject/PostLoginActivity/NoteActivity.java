@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,6 +15,10 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -30,9 +33,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
-import com.example.noteappproject.ReLoginActivity.RegisterUser;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityNoteBinding;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -40,7 +43,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -50,15 +52,23 @@ import java.util.Objects;
 
 public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener{
 
+    public static final String KEY_REQUEST_NOTE_OPERATION = "REQUEST_NOTE_OPERATION";
+    public static final int VALUE_REQUEST_ADD_NOTE = 101;
+    public static final int VALUE_REQUEST_UPDATE_NOTE = 102;
+
+    public static final String KEY_SENDING_NOTE_ITEM = "NOTE_ITEM";
+    public static final String KEY_SENDING_POSITION_NOTE_ITEM = "POSITION_NOTE_ITEM";
+
     private boolean isActivated;
 
     private ActivityNoteBinding binding;
-    private String userID;
     private DatabaseReference databaseReference;
     private FirebaseStorage storage;
     private FirebaseAuth mAuth;
 
+    // Lưu trạng thái của item được long click
     private NoteItem selectedNote;
+    private int selectedPosition;
 
     private boolean passwordVisible;
 
@@ -66,13 +76,11 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private List<NoteItem> list_NoteItem;
     private RecyclerViewNoteCustomAdapter recyclerViewNoteCustomAdapter;
 
-    private String idNote;
-
     @Override
     protected void onStart() {
         super.onStart();
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if ( FirebaseAuth.getInstance().getCurrentUser() == null ){
+        if ( user == null ){
             // Chưa đăng nhập không cho dùng
             finish();
         }
@@ -80,7 +88,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         // Check xem kích hoạt chưa
         assert user != null;
         this.isActivated = user.isEmailVerified();
-        Log.e("TEST", "Is actived: "+ this.isActivated);
     }
 
     @Override
@@ -105,17 +112,21 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             public void onClick(NoteItem noteItem) {
                 // Khi nhấn vào một item thì check nếu note đó có yêu cầu password thì hiện dialog để check pass.
                 if (noteItem.getPasswordNote().isEmpty()) {
+                    // Truyền Note item cần update sang
                     Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
-                    intent.putExtra("noteItems", noteItem);
-                    startActivityForResult(intent, 102);
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                    activityResultLauncher.launch(intent);
                 } else {
+                    // Nếu Item được yêu cầu mật khẩu thì mở dialog ra
                     showPasswordInputDialog(noteItem);
                 }
             }
 
             @Override
-            public void onLongClick(NoteItem noteItem, CardView cardView) {
+            public void onLongClick(NoteItem noteItem, CardView cardView, int position) {
                 selectedNote = noteItem;
+                selectedPosition = position;
                 showPopUp(cardView);
             }
         });
@@ -123,11 +134,15 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     private void DatabaseSetup() {
         this.mAuth = FirebaseAuth.getInstance();
+
         String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+
         if (userEmail == null){
             return;
         }
-        userEmail = RegisterUser.getSubEmailName(userEmail);
+
+        userEmail = StringUlti.getSubEmailName(userEmail);
+
         this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
 
         this.databaseReference.addChildEventListener(new ChildEventListener() {
@@ -190,23 +205,15 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     private void SetOnClickEvent() {
         // Open add note activity
+        // Nếu chưa kích hoạt thì không cho phép tạo quá 5 note
         this.binding.imageAddNoteMain.setOnClickListener(v -> {
             if ( !this.isActivated && this.list_NoteItem.size() >= 5 ){
-                // Create the object of
-                // AlertDialog Builder class
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(NoteActivity.this);
-                // Set Alert Title
                 builder.setTitle("Add Note Alert !");
-                // Set the message show for the Alert time
                 builder.setMessage("Please active your account to add more note ?");
-                // Set Cancelable false
-                // for when the user clicks on the outside
-                // the Dialog Box then it will remain show
                 builder.setCancelable(false);
 
-                // Set the positive button with yes name
-                // OnClickListener method is use of
-                // DialogInterface interface.
                 builder.setPositiveButton( "Send activated mail", (dialog, which) -> Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).sendEmailVerification()
                         .addOnCompleteListener(task1 -> {
                             if (task1.isSuccessful()) {
@@ -214,17 +221,13 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                                 dialog.dismiss();
                             }
                         }));
-
                 builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
-
-                // Create the Alert dialog
                 AlertDialog alertDialog = builder.create();
-
-                // Show the Alert Dialog box
                 alertDialog.show();
             } else {
-                Intent i = new Intent(NoteActivity.this, AddNoteActivity.class);
-                startActivityForResult(i, 101);
+                Intent intent = new Intent(NoteActivity.this, AddNoteActivity.class);
+                intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
+                activityResultLauncher.launch(intent);
             }
         });
 
@@ -256,7 +259,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private void filterNoteRecyclerView(String newText) {
         List<NoteItem> noteItemList = new ArrayList<>();
 
-        for (NoteItem noteItem : list_NoteItem) {
+        for (NoteItem noteItem : this.list_NoteItem) {
             if (noteItem.getLabel().toLowerCase().contains(newText.toLowerCase()) ||
                     noteItem.getSubtitle().toLowerCase().contains(newText.toLowerCase()) ||
                     noteItem.getText_content().toLowerCase().contains(newText.toLowerCase())) {
@@ -267,44 +270,54 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         this.recyclerViewNoteCustomAdapter.filter(noteItemList);
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    // Receive result from edit or add activity
+    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if ( result.getResultCode() == RESULT_OK && result.getData() != null ){
+                        Intent intentData = result.getData();
 
-        if (requestCode == 101) {
-            if (resultCode == AddNoteActivity.ADD_NOTE) {
-                assert data != null;
-                NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
-                RoomDB.getInstance(this).mainDAO().insert(new_notes);
-//                list_NoteItem.add(0, new_notes);
-//                recyclerViewNoteCustomAdapter.notifyItemInserted(0);
+                        NoteItem new_notes = (NoteItem) intentData.getSerializableExtra(NoteActivity.KEY_SENDING_NOTE_ITEM);
+
+                        if ( new_notes != null ){
+                            int requestOperation = intentData.getIntExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, -1);
+
+                            switch (requestOperation){
+                                case NoteActivity.VALUE_REQUEST_ADD_NOTE:
+                                    list_NoteItem.add(0, new_notes);
+                                    recyclerViewNoteCustomAdapter.notifyItemInserted(0);
+                                    break;
+                                case NoteActivity.VALUE_REQUEST_UPDATE_NOTE:
+                                    int resultCode = intentData.getIntExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, -1);
+                                    updateNote(new_notes, resultCode);
+                                    break;
+                                default:
+                                    break;
+
+                            }
+                        }
+                    } else {
+
+                    }
+                }
             }
-        } else if (requestCode == 102) {
-            if (resultCode == UpdateActivity.UPDATE_NOTE) {
-                assert data != null;
-                NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
-                RoomDB.getInstance(this).mainDAO().update(new_notes.getID(), new_notes.getLabel(), new_notes.getSubtitle(), new_notes.getText_content(), new_notes.getDate(), new_notes.getColor(), new_notes.getImagePath(), new_notes.getWebLink());
-//                list_NoteItem.clear();
-//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
-            }
-            else if (resultCode == UpdateActivity.SET_PASSWORD) {
-                assert data != null;
-                NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
-                RoomDB.getInstance(this).mainDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
-//                list_NoteItem.clear();
-//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
-            }
-            else if (resultCode == UpdateActivity.REMOVE_PASSWORD) {
-                assert data != null;
-                NoteItem new_notes = (NoteItem) data.getSerializableExtra("note");
-                RoomDB.getInstance(this).mainDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
-//                list_NoteItem.clear();
-//                list_NoteItem.addAll(RoomDB.getInstance(this).mainDAO().getAll());
-//                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
-            }
+    );
+
+    private void updateNote(NoteItem new_notes, int resultCode) {
+        if (resultCode == -1){
+            RoomDB.getInstance(this)
+                    .noteDAO()
+                    .update(new_notes.getID(), new_notes.getLabel(), new_notes.getSubtitle()
+                            , new_notes.getText_content(), new_notes.getDate()
+                            , new_notes.getColor(), new_notes.getImagePath(), new_notes.getWebLink());
+            return;
+        }
+
+        if (resultCode == UpdateActivity.REMOVE_PASSWORD || resultCode == UpdateActivity.SET_PASSWORD ){
+            RoomDB.getInstance(this).noteDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
+            return;
         }
     }
 
@@ -317,22 +330,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     @SuppressLint("ClickableViewAccessibility")
     private void showPasswordInputDialog(NoteItem noteItem) {
-        this.mAuth = FirebaseAuth.getInstance();
-        this.userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userID).child("NoteItems");
-
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Object value = snapshot.getValue();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
         final EditText passwordNote = new EditText(this);
         passwordNote.setHint("Enter password here");
         passwordNote.setTransformationMethod(PasswordTransformationMethod.getInstance());
@@ -372,8 +369,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
                     if (passwordValue.equals(noteItem.getPasswordNote())) {
                         Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
-                        intent.putExtra("noteItems", noteItem);
-                        startActivityForResult(intent, 102);
+                        intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                        intent.putExtra(NoteActivity.KEY_SENDING_POSITION_NOTE_ITEM, selectedPosition);
+                        activityResultLauncher.launch(intent);
                     } else {
                         Toast.makeText(NoteActivity.this, "Password incorrect", Toast.LENGTH_SHORT).show();
                     }
@@ -390,35 +388,33 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     public boolean onMenuItemClick(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.pin :
-                if (selectedNote.isPinned()) {
-                    selectedNote.setPinned(false);
-                    RoomDB.getInstance(this).mainDAO().pin(selectedNote.getID(), false);
-                    Toast.makeText(NoteActivity.this, "Unpinned", Toast.LENGTH_SHORT).show();
-                } else {
-                    selectedNote.setPinned(true);
-                    RoomDB.getInstance(this).mainDAO().pin(selectedNote.getID(), true);
-                    Toast.makeText(NoteActivity.this, "Pinned", Toast.LENGTH_SHORT).show();
-                }
+
+                selectedNote.setPinned(!selectedNote.isPinned());
+                RoomDB.getInstance(this).noteDAO().pin(selectedNote.getID(), selectedNote.isPinned());
+                Toast.makeText(NoteActivity.this, selectedNote.isPinned() ? "Pinned" : "Unpinned", Toast.LENGTH_SHORT).show();
 
                 int i = 0;
                 for (NoteItem noteItem : this.list_NoteItem) {
-                    if (noteItem.getID() == selectedNote.getID()) {
+                    if (noteItem.getCreated_at() == selectedNote.getCreated_at()) {
                         this.recyclerViewNoteCustomAdapter.notifyItemChanged(i);
                         break;
                     }
                     i++;
                 }
+
                 return true;
+
             case R.id.delete:
                 onClickDeleteItem(selectedNote);
-                RoomDB.getInstance(this).mainDAO().delete(selectedNote);
-                list_NoteItem.remove(selectedNote);
+
+                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
+                this.list_NoteItem.remove(selectedNote);
 
                 int j = 0;
                 for (NoteItem noteItem : this.list_NoteItem) {
-                    if (noteItem.getID() == selectedNote.getID()) {
+                    if (noteItem.getCreated_at() == selectedNote.getCreated_at()) {
                         this.recyclerViewNoteCustomAdapter.notifyItemRemoved(j);
-                        this.recyclerViewNoteCustomAdapter.notifyItemRangeChanged(j, this.list_NoteItem.size() - 1);
+                        this.recyclerViewNoteCustomAdapter.notifyItemRangeChanged(j, this.list_NoteItem.size());
                         break;
                     }
                     j++;
@@ -430,32 +426,31 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     }
 
     private void onClickDeleteItem(NoteItem noteItem) {
-        idNote = noteItem.getLabel();
-
-        userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-        databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userID).child("NoteItems");
+        String noteID = String.valueOf(noteItem.getCreated_at());
 
         storage = FirebaseStorage.getInstance();
 
+        // Maybe delete by ID then all relevant stuff is deleted too ???
+
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(idNote).removeValue((error, ref) -> {
+            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
 
             }));
         }
         else {
-            databaseReference.child(idNote).removeValue((error, ref) -> {
+            databaseReference.child(noteID).removeValue((error, ref) -> {
 
             });
         }
         if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(idNote).removeValue((error, ref) -> {
+            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
 
             }));
         }
         else {
-            databaseReference.child(idNote).removeValue((error, ref) -> {
+            databaseReference.child(noteID).removeValue((error, ref) -> {
 
             });
         }

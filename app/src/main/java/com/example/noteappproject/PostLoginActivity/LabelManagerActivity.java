@@ -1,43 +1,45 @@
 package com.example.noteappproject.PostLoginActivity;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.noteappproject.CustomAdapter.RecyclerViewLabelCustomAdapter;
-import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.Models.NoteLabel;
-import com.example.noteappproject.ReLoginActivity.RegisterUser;
+import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityLabelManagerBinding;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class LabelManagerActivity extends AppCompatActivity {
+public class LabelManagerActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ActivityLabelManagerBinding binding;
 
     private List<NoteLabel> noteLabelList;
     private RecyclerViewLabelCustomAdapter recyclerViewLabelCustomAdapter;
 
-    private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
 
+    private int mCurrentItemPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +50,8 @@ public class LabelManagerActivity extends AppCompatActivity {
 
         InitializeFields();
         DatabaseSetup();
+        SetOnClickEvent();
         SetUpNoteRecyclerView();
-        SearchLabelInputText();
     }
 
     private void InitializeFields() {
@@ -58,72 +60,37 @@ public class LabelManagerActivity extends AppCompatActivity {
     }
 
     private void DatabaseSetup() {
-        this.mAuth = FirebaseAuth.getInstance();
-        String userEmail = RegisterUser.getSubEmailName(this.mAuth.getCurrentUser().getEmail());
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
 
         if (userEmail == null){
-            FancyToast.makeText(LabelManagerActivity.this, "Error please login first", FancyToast.LENGTH_LONG, FancyToast.ERROR, false);
+            Toast.makeText(LabelManagerActivity.this, "Error please login first", Toast.LENGTH_LONG).show();
+            finish();
         }
-        userEmail = RegisterUser.getSubEmailName(userEmail);
 
-        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
+        assert userEmail != null;
+        userEmail = StringUlti.getSubEmailName(userEmail);
+        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("Label");
 
-//        this.databaseReference.addChildEventListener(new ChildEventListener() {
-//            @SuppressLint("NotifyDataSetChanged")
-//            @Override
-//            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-//                NoteItem noteItem = snapshot.getValue(NoteItem.class);
-//                if (noteItem != null) {
-//                    list_NoteItem.add(0, noteItem);
-//                    recyclerViewNoteCustomAdapter.notifyItemInserted(0);
-//                }
-//            }
-//
-//            @SuppressLint("NotifyDataSetChanged")
-//            @Override
-//            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-//                NoteItem noteItem = snapshot.getValue(NoteItem.class);
-//
-//                if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
-//                    return;
-//                }
-//                for (int i = 0; i < list_NoteItem.size(); i++) {
-//                    if (noteItem.getLabel().equals(list_NoteItem.get(i).getLabel())) {
-//                        list_NoteItem.set(i, noteItem);
-//                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
-//                        break;
-//                    }
-//                }
-//            }
-//
-//            @SuppressLint("NotifyDataSetChanged")
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-//                NoteItem noteItem = snapshot.getValue(NoteItem.class);
-//                if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
-//                    return;
-//                }
-//                for (int i = 0; i < list_NoteItem.size(); i++) {
-//                    if (noteItem.getLabel().equals(list_NoteItem.get(i).getLabel())) {
-//                        list_NoteItem.remove(list_NoteItem.get(i));
-//                        recyclerViewNoteCustomAdapter.notifyItemRemoved(i);
-//                        recyclerViewNoteCustomAdapter.notifyItemRangeChanged(i, list_NoteItem.size()- 1);
-//                        break;
-//                    }
-//                }
-//
-//            }
-//
-//            @Override
-//            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
+        this.databaseReference.get().addOnCompleteListener(task -> {
+                    if ( !task.isSuccessful() ){
+                        return;
+                    }
+
+                    String labelListFormat = Objects.requireNonNull(task.getResult().getValue()).toString();
+
+                    String[] labelList = labelListFormat.split("\\|");
+
+                    for (String label : labelList){
+                        noteLabelList.add(new NoteLabel(label));
+                    }
+                });
+    }
+
+    private void SetOnClickEvent() {
+        this.binding.imageBack.setOnClickListener(this);
+        this.binding.imageViewClearNoteLabelEditText.setOnClickListener(this);
+        this.binding.imageViewSaveLabel.setOnClickListener(this);
     }
 
     private void SetUpNoteRecyclerView() {
@@ -132,9 +99,106 @@ public class LabelManagerActivity extends AppCompatActivity {
         this.binding.recycleViewLabelList.setHasFixedSize(true);
         this.binding.recycleViewLabelList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         this.binding.recycleViewLabelList.setAdapter(this.recyclerViewLabelCustomAdapter);
+
+        registerForContextMenu(this.binding.recycleViewLabelList);
+
+        // Context menu
+        this.recyclerViewLabelCustomAdapter.setOnLongItemClickListener((v, position) -> {
+            mCurrentItemPosition = position;
+            v.showContextMenu();
+        });
     }
 
-    private void SearchLabelInputText() {
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()){
+            case R.id.imageBack:
+                finish();
+                break;
+            case R.id.imageView_ClearNoteLabelEditText:
+                this.binding.editTextNoteLabel.setText("");
+                break;
+            case R.id.imageView_SaveLabel:
+                saveLabel();
+                break;
+            default:
+                break;
+        }
     }
 
+    private void saveLabel() {
+        String label = this.binding.editTextNoteLabel.getText().toString();
+
+        if (label.equals("")){
+            Toast.makeText(LabelManagerActivity.this, "Label can't be empty ! Please enter an valid label !", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        this.noteLabelList.add(0, new NoteLabel(label));
+        this.recyclerViewLabelCustomAdapter.notifyItemInserted(0);
+
+        saveToFirebase();
+    }
+
+    private void saveToFirebase() {
+        StringBuilder stringBuffer = new StringBuilder();
+        for( NoteLabel noteLabel : this.noteLabelList ){
+            stringBuffer.append(noteLabel.getLabelName());
+            stringBuffer.append('|');
+        }
+
+        stringBuffer.deleteCharAt(stringBuffer.lastIndexOf("|"));
+        String labelSaveToFirebase = stringBuffer.toString();
+
+        this.databaseReference.setValue(labelSaveToFirebase);
+    }
+
+
+    // Create Context menu
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+//        AdapterView.AdapterContextMenuInfo adapterContextMenuInfo = (AdapterView.AdapterContextMenuInfo) menuInfo;
+//        int eventPosition = adapterContextMenuInfo.position;
+        getMenuInflater().inflate(R.menu.context_menu_label_operation, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.contextMenu_DeleteLabel:
+                deleteLabel(mCurrentItemPosition);
+                break;
+            case R.id.contextMenu_EditLabel:
+                editLabel(mCurrentItemPosition);
+                break;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    private void editLabel(int labelPosition) {
+
+    }
+
+    private void deleteLabel(int labelPosition) {
+        AlertDialog.Builder alertDialog_Builder = new AlertDialog.Builder(this);
+
+        alertDialog_Builder.setTitle("Confirm Remove Label !");
+        alertDialog_Builder.setMessage("Are you sure you want to remove this label !");
+        alertDialog_Builder.setPositiveButton("Yes", (dialogInterface, i) -> {
+            noteLabelList.remove(labelPosition);
+            recyclerViewLabelCustomAdapter.notifyItemRemoved(labelPosition);
+            recyclerViewLabelCustomAdapter.notifyItemRangeChanged(labelPosition, noteLabelList.size());
+            saveToFirebase();
+        });
+
+        alertDialog_Builder.setNegativeButton("No", null);
+        alertDialog_Builder.setCancelable(false);
+
+        Dialog dialog = alertDialog_Builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+    }
 }

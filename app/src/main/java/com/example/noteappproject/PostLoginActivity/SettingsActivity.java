@@ -24,6 +24,7 @@ import com.example.noteappproject.R;
 import com.example.noteappproject.ReLoginActivity.ChangePasswordActivity;
 import com.example.noteappproject.ReLoginActivity.MainActivity;
 import com.example.noteappproject.ReLoginActivity.RegisterUser;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -89,7 +90,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
 
-        final String userEmail = RegisterUser.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userEmail).child("Settings");
 

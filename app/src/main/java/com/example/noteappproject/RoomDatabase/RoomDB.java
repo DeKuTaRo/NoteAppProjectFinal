@@ -12,7 +12,7 @@ import com.example.noteappproject.Models.NoteItem;
 public abstract class RoomDB extends RoomDatabase {
 
     private static RoomDB database;
-    private static String DATABASE_NAME = "NoteAppProject";
+    private static final String DATABASE_NAME = "NoteAppProject";
 
     public synchronized static RoomDB getInstance(Context context) {
 
@@ -27,6 +27,6 @@ public abstract class RoomDB extends RoomDatabase {
         return database;
     }
 
-    public abstract MainDAO mainDAO();
+    public abstract NoteDAO noteDAO();
 
 }

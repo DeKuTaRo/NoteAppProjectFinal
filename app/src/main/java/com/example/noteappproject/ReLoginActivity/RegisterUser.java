@@ -1,11 +1,13 @@
 package com.example.noteappproject.ReLoginActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,10 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.noteappproject.Models.User;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityRegisterUserBinding;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
-import com.shashank.sony.fancytoastlib.FancyToast;
 
 public class RegisterUser extends AppCompatActivity implements View.OnClickListener{
     private ActivityRegisterUserBinding binding;
@@ -72,8 +74,6 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
         setContentView(viewRoot);
 
         this.mAuth = FirebaseAuth.getInstance();
-
-
 
         BindingView();
         SetOnClickEvent();
@@ -155,32 +155,26 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
                         User user = new User(fullNameValue, emailValue);
 
                         // Tạo bảng Users/Email/Account
-                        FirebaseDatabase.getInstance().getReference("Users").child(getSubEmailName(emailValue)).child("Account")
+                        FirebaseDatabase.getInstance().getReference("Users").child(StringUlti.getSubEmailName(emailValue)).child("Account")
                                 .setValue(user)
                                 .addOnCompleteListener(task1 -> {
                                     if (task1.isSuccessful()) {
-                                        FancyToast.makeText(RegisterUser.this,
-                                                "User account has been register successfully !",
-                                                FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false);
+                                        ShowToast("User account has been register successfully !", RegisterUser.this);
                                         progressBar.setVisibility(View.VISIBLE);
                                         finish();
                                     } else {
-                                        FancyToast.makeText(RegisterUser.this,
-                                                "Failed to register ! Try again !",
-                                                FancyToast.LENGTH_LONG, FancyToast.ERROR, false);
+                                        ShowToast("Failed to register ! Try again !", RegisterUser.this);
                                         progressBar.setVisibility(View.GONE);
                                     }
                                 });
                     } else {
-                        FancyToast.makeText(RegisterUser.this,
-                                "Failed to register ! Try again !",
-                                FancyToast.LENGTH_LONG, FancyToast.ERROR, false);
+                        ShowToast("Failed to register ! Try again !", RegisterUser.this);
                         progressBar.setVisibility(View.GONE);
                     }
                 });
     }
 
-    public final static String getSubEmailName(String email){
-        return email.substring(0, email.indexOf("@"));
+    public void ShowToast(String message, Context context){
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 }

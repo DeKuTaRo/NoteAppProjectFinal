@@ -1,7 +1,6 @@
 package com.example.noteappproject.ReLoginActivity;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
@@ -17,9 +16,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.noteappproject.PostLoginActivity.NoteActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityMainBinding;
+import com.example.noteappproject.utilities.NetworkUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.shashank.sony.fancytoastlib.FancyToast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -88,13 +87,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             default:
                 // Toast Error Message
-                FancyToast.makeText(MainActivity.this, "Error ", FancyToast.LENGTH_LONG, FancyToast.CONFUSING, false);
                 break;
         }
 
     }
 
     private void userLogin() {
+        if (!NetworkUtil.isNetworkAvailable(this) || !NetworkUtil.isInternetAvailable()){
+            // Create the object of
+            // AlertDialog Builder class
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            // Set Alert Title
+            builder.setTitle("Internet require !");
+            // Set the message show for the Alert time
+            builder.setMessage("You need to connect to internet first ?");
+            // Set Cancelable false
+            // for when the user clicks on the outside
+            // the Dialog Box then it will remain show
+            builder.setCancelable(false);
+
+            // Set the positive button with yes name
+            // OnClickListener method is use of
+            // DialogInterface interface.
+            builder.setPositiveButton( "Yes", (dialog, which) -> {
+                // When the user click yes button
+                // then app will close
+                dialog.dismiss();
+            });
+
+            // Create the Alert dialog
+            AlertDialog alertDialog = builder.create();
+
+            // Show the Alert Dialog box
+            alertDialog.show();
+            return;
+        }
+
 
         String email = this.binding.emailEditText.getText().toString().trim();
         String password = this.binding.passwordEditText.getText().toString().trim();
@@ -163,9 +191,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             });
                                 });
 
-                                builder.setNegativeButton("Later", (dialog, which) -> {
-                                    startActivity(new Intent(MainActivity.this, NoteActivity.class));
-                                });
+                                builder.setNegativeButton("Later", (dialog, which) -> startActivity(new Intent(MainActivity.this, NoteActivity.class)));
 
                                 // Create the Alert dialog
                                 AlertDialog alertDialog = builder.create();
@@ -175,9 +201,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }
                         }
                     } else {
-                        FancyToast.makeText(MainActivity.this,
+                        Toast.makeText(MainActivity.this,
                                 "Login failed ! Wrong email or password !",
-                                FancyToast.LENGTH_LONG, FancyToast.INFO, false);
+                                Toast.LENGTH_LONG).show();
                         this.binding.progressBar.setVisibility(View.GONE);
                     }
                 });

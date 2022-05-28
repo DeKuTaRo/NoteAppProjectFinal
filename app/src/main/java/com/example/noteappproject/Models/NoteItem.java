@@ -2,6 +2,7 @@ package com.example.noteappproject.Models;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
@@ -42,6 +43,9 @@ public class NoteItem implements Serializable {
     @ColumnInfo(name = "passwordNote")
     String passwordNote = "";
 
+    @ColumnInfo(name = "created_at")
+    long created_at;
+
     public NoteItem() {
 
     }
@@ -69,6 +73,21 @@ public class NoteItem implements Serializable {
         this.videoPath = videoPath;
         this.webLink = webLink;
         this.passwordNote = passwordNote;
+    }
+
+    public NoteItem(int ID, String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink, boolean pinned, String passwordNote, long created_at) {
+        this.ID = ID;
+        this.label = label;
+        this.subtitle = subtitle;
+        this.text_content = text_content;
+        this.date = date;
+        this.color = color;
+        this.imagePath = imagePath;
+        this.videoPath = videoPath;
+        this.webLink = webLink;
+        this.pinned = pinned;
+        this.passwordNote = passwordNote;
+        this.created_at = created_at;
     }
 
     public NoteItem(int ID, String passwordNote) {
@@ -162,5 +181,13 @@ public class NoteItem implements Serializable {
 
     public void setPasswordNote(String passwordNote) {
         this.passwordNote = passwordNote;
+    }
+
+    public long getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(long created_at) {
+        this.created_at = created_at;
     }
 }
