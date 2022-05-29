@@ -30,7 +30,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.noteappproject.AdvancedFunction.TrashBinActivity;
 import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
@@ -56,7 +55,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     public static final String KEY_REQUEST_NOTE_OPERATION = "REQUEST_NOTE_OPERATION";
     public static final int VALUE_REQUEST_ADD_NOTE = 101;
     public static final int VALUE_REQUEST_UPDATE_NOTE = 102;
-    public static final int VALUE_REQUEST_DELETE_NOTE = 103;
 
     public static final String KEY_SENDING_NOTE_ITEM = "NOTE_ITEM";
     public static final String KEY_SENDING_POSITION_NOTE_ITEM = "POSITION_NOTE_ITEM";
@@ -86,14 +84,11 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         if ( user == null ){
             // Chưa đăng nhập không cho dùng
             finish();
-        } else {
-            this.isActivated = user.isEmailVerified();
-
         }
 
         // Check xem kích hoạt chưa
-//        assert user != null;
-//        this.isActivated = user.isEmailVerified();
+        assert user != null;
+        this.isActivated = user.isEmailVerified();
     }
 
     @Override
@@ -112,13 +107,13 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     }
 
     private void ShowEmptyView(){
-//        if (this.recyclerViewNoteCustomAdapter.getItemCount() == 0) {
-//            this.binding.linearLayoutEmptyView.setVisibility(View.VISIBLE);
-//            this.binding.recycleView.setVisibility(View.GONE);
-//        }else {
-//            this.binding.linearLayoutEmptyView.setVisibility(View.GONE);
-//        }
-
+        if (this.recyclerViewNoteCustomAdapter.getItemCount() == 0) {
+            this.binding.linearLayoutEmptyView.setVisibility(View.VISIBLE);
+            this.binding.recycleView.setVisibility(View.GONE);
+        }else {
+            this.binding.linearLayoutEmptyView.setVisibility(View.GONE);
+            this.binding.recycleView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void InitializeNoteRecyclerView() {
@@ -126,8 +121,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         this.recyclerViewNoteCustomAdapter = new RecyclerViewNoteCustomAdapter(this, this.list_NoteItem, new RecyclerViewNoteCustomAdapter.IItemClick() {
             @Override
-            public void onClick(NoteItem noteItem) {
+            public void onClick(NoteItem noteItem, int position) {
                 // Khi nhấn vào một item thì check nếu note đó có yêu cầu password thì hiện dialog để check pass.
+                selectedPosition = position;
                 if (noteItem.getPasswordNote().isEmpty()) {
                     // Truyền Note item cần update sang
                     Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
@@ -162,9 +158,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         userEmail = StringUlti.getSubEmailName(userEmail);
 
-        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail);
+        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
 
-        this.databaseReference.child("NoteItems").addChildEventListener(new ChildEventListener() {
+        this.databaseReference.addChildEventListener(new ChildEventListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
@@ -184,13 +180,16 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
-                for (int i = 0; i < list_NoteItem.size(); i++) {
-                    if (noteItem.getCreated_at() == (list_NoteItem.get(i).getCreated_at())) {
-                        list_NoteItem.set(i, noteItem);
-                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
-                        break;
-                    }
-                }
+//                for (int i = 0; i < list_NoteItem.size(); i++) {
+//                    if (noteItem.getCreated_at() == list_NoteItem.get(i).getCreated_at() ) {
+//                        list_NoteItem.set(i, noteItem);
+//                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
+//                        break;
+//                    }
+//                }
+
+                list_NoteItem.set(selectedPosition, noteItem);
+                recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -200,28 +199,11 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem_Deleted == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
-                for (int i = 0; i < list_NoteItem.size(); i++) {
-                    if (noteItem_Deleted.getCreated_at() == list_NoteItem.get(i).getCreated_at()) {
-                        list_NoteItem.remove(list_NoteItem.get(i));
-                        recyclerViewNoteCustomAdapter.notifyItemRemoved(i);
-                        break;
-                    }
-                }
             }
 
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-//                NoteItem noteItem_Deleted = snapshot.getValue(NoteItem.class);
-//                if (noteItem_Deleted == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
-//                    return;
-//                }
-//                for (int i = 0; i < list_NoteItem.size(); i++) {
-//                    if (noteItem_Deleted.getCreated_at() == list_NoteItem.get(i).getCreated_at()) {
-//                        list_NoteItem.remove(list_NoteItem.get(i));
-//                        recyclerViewNoteCustomAdapter.notifyItemRemoved(i);
-//                        break;
-//                    }
-//                }
+
             }
 
             @Override
@@ -255,15 +237,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             } else {
                 Intent intent = new Intent(NoteActivity.this, AddNoteActivity.class);
                 intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
-                activityResultLauncher.launch(intent);
-            }
-        });
-
-        this.binding.imageTrashBin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(NoteActivity.this, TrashBinActivity.class);
-                intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_DELETE_NOTE);
                 activityResultLauncher.launch(intent);
             }
         });
@@ -350,13 +323,17 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     .update(new_notes.getID(), new_notes.getLabel(), new_notes.getSubtitle()
                             , new_notes.getText_content(), new_notes.getDate()
                             , new_notes.getColor(), new_notes.getImagePath(), new_notes.getWebLink());
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             return;
         }
 
         if (resultCode == UpdateActivity.REMOVE_PASSWORD || resultCode == UpdateActivity.SET_PASSWORD ){
             RoomDB.getInstance(this).noteDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             return;
         }
+
+
     }
 
     private void showPopUp(CardView cardView) {
@@ -442,20 +419,18 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 return true;
 
             case R.id.delete:
-//                deleteNoteStorage(selectedNote);
-//
-//                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
-//
-//                this.list_NoteItem.remove(selectedNote);
-//                this.databaseReference.child(String.valueOf(selectedNote.getCreated_at())).removeValue().addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()){
-//                        recyclerViewNoteCustomAdapter.notifyDataSetChanged();
-//                    };
-//                });
-                selectedNote.setDeleted(true);
-                moveNoteToTrashBin(selectedNote);
-                return true;
+                deleteNoteStorage(selectedNote);
 
+                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
+
+                this.list_NoteItem.remove(selectedNote);
+                this.databaseReference.child(String.valueOf(selectedNote.getCreated_at())).removeValue().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()){
+                        recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+                    };
+                });
+
+                return true;
             case R.id.shareNote:
                 Intent sendIntent = new Intent();
                 sendIntent.setAction(Intent.ACTION_SEND);
@@ -464,17 +439,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
                 Intent shareIntent = Intent.createChooser(sendIntent, "Note");
                 startActivity(shareIntent);
-                return true;
             default:
                 return false;
         }
-    }
-
-    private void moveNoteToTrashBin(NoteItem noteItem) {
-        final long created_at = noteItem.getCreated_at();
-        this.databaseReference.child("NoteItems").child(String.valueOf(created_at)).removeValue();
-        this.databaseReference.child("NoteItemsTrashBin").child(String.valueOf(created_at)).setValue(noteItem);
-        Toast.makeText(this, "Note was removed to trash bin", Toast.LENGTH_SHORT).show();
     }
 
     private void deleteNoteStorage(NoteItem noteItem) {
@@ -486,12 +453,12 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child("NoteItems").child(noteID).removeValue());
+            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
         }
 
         if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child("NoteItems").child(noteID).removeValue());
+            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
 
         }
 

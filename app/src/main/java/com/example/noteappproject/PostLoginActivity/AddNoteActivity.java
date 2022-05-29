@@ -11,15 +11,12 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,11 +32,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
-import com.example.noteappproject.Models.Settings;
 import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityAddNoteBinding;
-import com.example.noteappproject.utilities.MultipleChoiceDialog;
 import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,11 +46,12 @@ import com.google.firebase.storage.StorageTask;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-public class AddNoteActivity extends AppCompatActivity implements OnClickListener, MultipleChoiceDialog.IOnMultipleChoiceListener{
+public class AddNoteActivity extends AppCompatActivity implements OnClickListener{
     private EditText label, subtitle, textContent;
     private ImageView imageBack, imageSave, imageNote;
     private TextView textDateTime;
@@ -64,7 +60,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     private LinearLayout layoutWebURL;
     private AlertDialog dialogURL;
     private VideoView videoView;
-    private String selectedNoteColor;
+    private String selectedNoteColor, selectedImagePath, selectedVideoPath;
     private LinearLayout layoutDeleteVideo;
     private Uri imageUri, videoUri;
 
@@ -81,8 +77,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private String imageUriTask, videoUriTask;
 
-    private String[] labelItems = {"work", "family", "school"};
-    ArrayAdapter<String> adapterLabel;
+
     private ActivityAddNoteBinding binding;
 
     @SuppressLint("SetTextI18n")
@@ -126,19 +121,8 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         videoView = this.binding.videoView;
 
         selectedNoteColor = "#333333";
-        imageUriTask = "";
-        videoUriTask = "";
-
-        adapterLabel = new ArrayAdapter<String>(this, R.layout.list_item_font_size, labelItems);
-        this.binding.label.setAdapter(adapterLabel);
-
-        this.binding.label.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = parent.getItemAtPosition(position).toString();
-                Toast.makeText(AddNoteActivity.this, "Item + " + item, Toast.LENGTH_SHORT).show();
-            }
-        });
+        selectedImagePath = "";
+        selectedVideoPath = "";
     }
 
     private void setupDatabase() {
@@ -148,7 +132,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
 
     private void setOnClickEvent() {
-//        label.setOnClickListener(this);
+        label.setOnClickListener(this);
 
         imageBack.setOnClickListener(this);
 
@@ -173,6 +157,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             videoView.setVisibility(View.GONE);
             layoutDeleteVideo.setVisibility(View.GONE);
             v.setVisibility(View.GONE);
+            selectedVideoPath = "";
         });
     }
 
@@ -186,17 +171,91 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             case R.id.imageSave:
                 sendDataToDatabase();
                 break;
-//            case R.id.label:
-//                showMultipleChoiceLabelDialog();
-//                break;
+            case R.id.label:
+                showMultipleChoiceLabelDialog();
+                break;
         }
     }
 
-//    private void showMultipleChoiceLabelDialog() {
-//        MultipleChoiceDialog multipleChoiceDialog = new MultipleChoiceDialog();
-//        multipleChoiceDialog.setCancelable(false);
-//        multipleChoiceDialog.show(getSupportFragmentManager(), "Multiple choice dialog !");
-//    }
+    private void showMultipleChoiceLabelDialog() {
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+
+        if (userEmail == null){
+            return;
+        }
+
+        assert userEmail != null;
+        userEmail = StringUlti.getSubEmailName(userEmail);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("Label");
+
+        databaseReference.get().addOnCompleteListener(task -> {
+            if ( !task.isSuccessful() ){
+                return;
+            }
+            String[] listLabel = null;
+
+            String labelListFormat = (String) task.getResult().getValue(String.class);
+            String[] availableLabel = getResources().getStringArray(R.array.available_label);
+
+            if ( labelListFormat == null ){
+                listLabel = availableLabel;
+            } else {
+                String[] labelListFromDatabase = labelListFormat.split("\\|");
+                String[] total = new String[labelListFromDatabase.length + availableLabel.length];
+
+                int i = 0;
+                for (String label: availableLabel){
+                    total[i] = label;
+                    i++;
+                }
+
+                for (String label: labelListFromDatabase){
+                    total[i] = label;
+                    i++;
+                }
+
+                listLabel = total;
+            }
+
+
+
+            List<String> selectedLabel = new ArrayList<>();
+            AlertDialog.Builder builder = new AlertDialog.Builder(AddNoteActivity.this);
+
+            String[] finalListLabel = listLabel;
+            builder.setTitle("Note Label!")
+                    .setMultiChoiceItems(listLabel, null, (dialogInterface, i, b) -> {
+                        if (b) {
+                            selectedLabel.add(finalListLabel[i]);
+                        } else {
+                            selectedLabel.remove(finalListLabel[i]);
+                        }
+                    }).setPositiveButton("Add", (dialogInterface, i) -> {
+                        StringBuilder stringBuilder = new StringBuilder();
+
+                        for ( String label : selectedLabel ){
+                            stringBuilder.append(label);
+                            stringBuilder.append(" | ");
+                        }
+
+                        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("|"));
+                        String formattedLabel = stringBuilder.toString();
+
+                        label.setText(formattedLabel);
+                    })
+
+                    .setNegativeButton("Later", (dialogInterface, i) -> dialogInterface.dismiss()).setNeutralButton("Add more label", (dialogInterface, i) -> {
+                        Intent intent = new Intent(AddNoteActivity.this, LabelManagerActivity.class);
+                        startActivity(intent);
+                    });
+
+            builder.setMessage("Add labels to your note !");
+            builder.setCancelable(false);
+
+           builder.create();
+        });
+    }
 
     private void sendDataToDatabase() {
         String labelValue = label.getText().toString().trim();
@@ -216,10 +275,38 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
         }
-//
-        if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE ) {
+
+        // Không up hình lẫn video
+        if ( (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE ) && videoView.getVisibility() == View.GONE ) {
             noteItem.setImagePath("");
-        } else {
+            noteItem.setVideoPath("");
+
+            noteItem.setLabel(labelValue);
+            noteItem.setSubtitle(subtitleValue);
+            noteItem.setText_content(textContentValue);
+            noteItem.setDate(dateTimeValue);
+            noteItem.setColor(selectedNoteColor);
+            noteItem.setPasswordNote("");
+
+            // Lấy current time làm ID
+            long created_at = System.currentTimeMillis();
+            noteItem.setCreated_at(created_at);
+
+            final String currentTimeStamp = String.valueOf(created_at);
+            databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+            RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
+            Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent();
+            intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+            intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
+
+            finish();
+        };
+
+        // Up hình và video
+        if ( (imageNote.getDrawable() != null && imageNote.getVisibility() != View.GONE ) && videoView.getVisibility() != View.GONE ){
             // Up Uri hình lên firebase
             StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
 
@@ -236,14 +323,100 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 if (task.isSuccessful()) {
                     imageUriTask = task.getResult().toString();
                     noteItem.setImagePath(imageUriTask);
+
+                    // Upload videoUri lên firebase
+                    StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+
+                    StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
+                            "." + getFileExtension(videoUri));
+
+                    videoReference.putFile(videoUri).continueWithTask(task1 -> {
+                        if (!task.isSuccessful()) {
+                            throw Objects.requireNonNull(task.getException());
+                        }
+
+                        return videoReference.getDownloadUrl();
+                    }).addOnCompleteListener(task1 -> {
+                        if (task.isSuccessful()) {
+                            videoUriTask = task.getResult().toString();
+                            noteItem.setVideoPath(videoUriTask);
+
+                            noteItem.setLabel(labelValue);
+                            noteItem.setSubtitle(subtitleValue);
+                            noteItem.setText_content(textContentValue);
+                            noteItem.setDate(dateTimeValue);
+                            noteItem.setColor(selectedNoteColor);
+                            noteItem.setPasswordNote("");
+
+                            // Lấy current time làm ID
+                            long created_at = System.currentTimeMillis();
+                            noteItem.setCreated_at(created_at);
+
+                            final String currentTimeStamp = String.valueOf(created_at);
+                            databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+                            RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
+                            Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent();
+                            intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                            intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
+
+                            finish();
+                        }
+                    });
                 }
             });
         }
 
-        // Check xem có upload video không
-        if (videoView.getVisibility() == View.GONE) {
-            noteItem.setVideoPath("");
-        } else {
+
+        // Up hình không video
+        if ( (imageNote.getDrawable() != null && imageNote.getVisibility() != View.GONE ) && videoView.getVisibility() == View.GONE ){
+            StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
+
+            StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
+                    "." + getFileExtension(imageUri));
+
+            imageReference.putFile(imageUri).continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw Objects.requireNonNull(task.getException());
+                }
+
+                return imageReference.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    imageUriTask = task.getResult().toString();
+                    noteItem.setImagePath(imageUriTask);
+                    noteItem.setVideoPath("");
+
+                    noteItem.setLabel(labelValue);
+                    noteItem.setSubtitle(subtitleValue);
+                    noteItem.setText_content(textContentValue);
+                    noteItem.setDate(dateTimeValue);
+                    noteItem.setColor(selectedNoteColor);
+                    noteItem.setPasswordNote("");
+
+                    // Lấy current time làm ID
+                    long created_at = System.currentTimeMillis();
+                    noteItem.setCreated_at(created_at);
+
+                    final String currentTimeStamp = String.valueOf(created_at);
+                    databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+                    RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
+                    Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent();
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
+
+                    finish();
+                }
+            });
+        }
+
+        // Up video không up hình
+        if ( (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE ) && videoView.getVisibility() != View.GONE ){
             // Upload videoUri lên firebase
             StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
 
@@ -259,37 +432,35 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     videoUriTask = task.getResult().toString();
-
                     noteItem.setVideoPath(videoUriTask);
+                    noteItem.setImagePath("");
+
+                    noteItem.setLabel(labelValue);
+                    noteItem.setSubtitle(subtitleValue);
+                    noteItem.setText_content(textContentValue);
+                    noteItem.setDate(dateTimeValue);
+                    noteItem.setColor(selectedNoteColor);
+                    noteItem.setPasswordNote("");
+
+                    // Lấy current time làm ID
+                    long created_at = System.currentTimeMillis();
+                    noteItem.setCreated_at(created_at);
+
+                    final String currentTimeStamp = String.valueOf(created_at);
+                    databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+                    RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
+                    Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent();
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
+
+                    finish();
                 }
             });
         }
-
-        noteItem.setLabel(labelValue);
-        noteItem.setSubtitle(subtitleValue);
-        noteItem.setText_content(textContentValue);
-        noteItem.setDate(dateTimeValue);
-        noteItem.setColor(selectedNoteColor);
-        noteItem.setPasswordNote("");
-
-        // Lấy current time làm ID
-        long created_at = System.currentTimeMillis();
-        noteItem.setCreated_at(created_at);
-
-        final String currentTimeStamp = String.valueOf(created_at);
-        databaseReference.child(currentTimeStamp).setValue(noteItem);
-
-        RoomDB.getInstance(this).noteDAO().insert(noteItem);
-        Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
-
-        Intent intent = new Intent();
-        intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
-        intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
-
-        finish();
     }
-
-
 
     private void setViewColor(String selectedNoteColor, int indexImageResource,  ImageView[] imageColors){
         this.selectedNoteColor = selectedNoteColor;
@@ -492,26 +663,5 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private void addVoice() {
         Toast.makeText(AddNoteActivity.this, "This function is developing", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onPositiveButtonClicked(List<String> selectedLabel) {
-        StringBuilder builder = new StringBuilder();
-
-        for ( String label : selectedLabel ){
-            builder.append(label);
-            builder.append(" | ");
-        }
-
-        builder.deleteCharAt(builder.lastIndexOf("|"));
-        String formatedLabel = builder.toString();
-
-        label.setText(formatedLabel);
-    }
-
-    @Override
-    public void onNeutralButtonClicked() {
-        Intent intent = new Intent(AddNoteActivity.this, LabelManagerActivity.class);
-        startActivity(intent);
     }
 }
