@@ -36,8 +36,6 @@ import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityNoteBinding;
 import com.example.noteappproject.utilities.StringUlti;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -53,7 +51,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener{
-
+    // KEY AND VALUE USE WHEN SENDING DATA THOUGHT INTENT
     public static final String KEY_REQUEST_NOTE_OPERATION = "REQUEST_NOTE_OPERATION";
     public static final int VALUE_REQUEST_ADD_NOTE = 101;
     public static final int VALUE_REQUEST_UPDATE_NOTE = 102;
@@ -61,6 +59,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     public static final String KEY_SENDING_NOTE_ITEM = "NOTE_ITEM";
     public static final String KEY_SENDING_POSITION_NOTE_ITEM = "POSITION_NOTE_ITEM";
 
+    // Check is user account is activated
     private boolean isActivated;
 
     private ActivityNoteBinding binding;

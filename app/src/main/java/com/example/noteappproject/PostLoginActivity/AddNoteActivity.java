@@ -74,7 +74,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     private StorageTask mUploadTask;
 
     private String imageUriTask, videoUriTask;
-    private NoteItem noteItem;
+
 
     private ActivityAddNoteBinding binding;
 
@@ -136,6 +136,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
         videoView.setOnPreparedListener(mp -> mp.setLooping(true));
 
+        // Event khi nhấn vào remove hình, webURL, video...
         this.binding.imageRemoveWebURL.setOnClickListener(v -> {
             textWebURL.setVisibility(View.GONE);
             layoutWebURL.setVisibility(View.GONE);
@@ -181,19 +182,23 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             return;
         }
 
-        noteItem = new NoteItem();
+        NoteItem noteItem = new NoteItem();
 
+        // Nếu có thêm web URL
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
         }
 
+        // Check xem có thêm hình không
         if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE) {
             noteItem.setImagePath("");
         } else {
+            // Up Uri hình lên firebase ????
             StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
 
             StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageUri));
+
             imageReference.putFile(imageUri).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
                     throw Objects.requireNonNull(task.getException());
@@ -208,12 +213,16 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             });
         }
 
+        // Check xem có upload video không
         if (videoView.getVisibility() == View.GONE) {
             noteItem.setVideoPath("");
         } else {
+            // Upload videoUri lên firebase
             StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+
             StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(videoUri));
+
             videoReference.putFile(videoUri).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
                     throw Objects.requireNonNull(task.getException());
@@ -238,6 +247,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         // Lấy current time làm ID
         long created_at = System.currentTimeMillis();
         noteItem.setCreated_at(created_at);
+
         final String currentTimeStamp = String.valueOf(created_at);
 
         databaseReference.child(currentTimeStamp).setValue(noteItem);
@@ -250,6 +260,22 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
 
         finish();
+    }
+
+
+
+    private void setViewColor(String selectedNoteColor, int indexImageResource,  ImageView[] imageColors){
+        this.selectedNoteColor = selectedNoteColor;
+
+        for ( int i = 0 ; i < imageColors.length; i++ ){
+            if ( i == indexImageResource ){
+                imageColors[i].setImageResource(R.drawable.ic_check);
+            } else {
+                imageColors[i].setImageResource(0);
+            }
+        }
+
+        setSubtitleIndicator();
     }
 
     private void initMiscellaneous() {
@@ -270,55 +296,17 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         final ImageView imageColor4 = layoutMiscellaneous.findViewById(R.id.imageColor4);
         final ImageView imageColor5 = layoutMiscellaneous.findViewById(R.id.imageColor5);
 
-        layoutMiscellaneous.findViewById(R.id.viewColor1).setOnClickListener(v -> {
-            selectedNoteColor = "#333333";
-            imageColor1.setImageResource(R.drawable.ic_check);
-            imageColor2.setImageResource(0);
-            imageColor3.setImageResource(0);
-            imageColor4.setImageResource(0);
-            imageColor5.setImageResource(0);
-            setSubtitleIndicator();
-        });
+        ImageView[] imageColors = { imageColor1, imageColor2, imageColor3, imageColor4, imageColor5};
 
-        layoutMiscellaneous.findViewById(R.id.viewColor2).setOnClickListener(v -> {
-            selectedNoteColor = "#FDBE3B";
-            imageColor1.setImageResource(0);
-            imageColor2.setImageResource(R.drawable.ic_check);
-            imageColor3.setImageResource(0);
-            imageColor4.setImageResource(0);
-            imageColor5.setImageResource(0);
-            setSubtitleIndicator();
-        });
+        layoutMiscellaneous.findViewById(R.id.viewColor1).setOnClickListener(v -> setViewColor("#333333", 0, imageColors));
 
-        layoutMiscellaneous.findViewById(R.id.viewColor3).setOnClickListener(v -> {
-            selectedNoteColor = "#FF4842";
-            imageColor1.setImageResource(0);
-            imageColor2.setImageResource(0);
-            imageColor3.setImageResource(R.drawable.ic_check);
-            imageColor4.setImageResource(0);
-            imageColor5.setImageResource(0);
-            setSubtitleIndicator();
-        });
+        layoutMiscellaneous.findViewById(R.id.viewColor2).setOnClickListener(v -> setViewColor("#FDBE3B", 1, imageColors));
 
-        layoutMiscellaneous.findViewById(R.id.viewColor4).setOnClickListener(v -> {
-            selectedNoteColor = "#3A52Fc";
-            imageColor1.setImageResource(0);
-            imageColor2.setImageResource(0);
-            imageColor3.setImageResource(0);
-            imageColor4.setImageResource(R.drawable.ic_check);
-            imageColor5.setImageResource(0);
-            setSubtitleIndicator();
-        });
+        layoutMiscellaneous.findViewById(R.id.viewColor3).setOnClickListener(v -> setViewColor("#FF4842", 2, imageColors));
 
-        layoutMiscellaneous.findViewById(R.id.viewColor5).setOnClickListener(v -> {
-            selectedNoteColor = "#000000";
-            imageColor1.setImageResource(0);
-            imageColor2.setImageResource(0);
-            imageColor3.setImageResource(0);
-            imageColor4.setImageResource(0);
-            imageColor5.setImageResource(R.drawable.ic_check);
-            setSubtitleIndicator();
-        });
+        layoutMiscellaneous.findViewById(R.id.viewColor4).setOnClickListener(v -> setViewColor("#3A52Fc", 3, imageColors));
+
+        layoutMiscellaneous.findViewById(R.id.viewColor5).setOnClickListener(v -> setViewColor("#000000", 4, imageColors));
 
         layoutMiscellaneous.findViewById(R.id.layoutAddImage).setOnClickListener(v -> {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
