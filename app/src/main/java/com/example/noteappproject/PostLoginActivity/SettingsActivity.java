@@ -60,6 +60,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     protected void onResume() {
         super.onResume();
 
+        fontSizeItem = selectFontSize.getText().toString();
+        fontStyleItem = selectFontStyle.getText().toString();
+
+
         this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -85,13 +89,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         Settings settings = new Settings();
 
-        if (!fontSizeDB.equals(fontSizeItem)) {
-            settings.setFontSize(fontSizeDB);
-        }
+        settings.setFontSize(fontSizeDB);
 
-        if (!fontStyleDB.equals(fontStyleItem)){
-            settings.setFontStyle(fontStyleDB);
-        }
+
+        settings.setFontStyle(fontStyleDB);
+
 
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
@@ -103,7 +105,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         this.mAuth = FirebaseAuth.getInstance();
-
 
         changePassBtn = findViewById(R.id.changePassBtn);
         changePassBtn.setOnClickListener(this);
@@ -120,12 +121,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
-        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
-        rootNode = FirebaseDatabase.getInstance();
-        reference = rootNode.getReference("Users").child(userEmail).child("Settings");
-
-        reference.setValue(settings);
+        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
+        selectFontSize.setAdapter(arrayFontSizeAdapter);
 
         selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -146,6 +143,13 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 Settings settings = new Settings(fontSizeItem, fontStyleItem);
                 reference.setValue(settings);            }
         });
+
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
+        rootNode = FirebaseDatabase.getInstance();
+        reference = rootNode.getReference("Users").child(userEmail).child("Settings");
+
+        reference.setValue(settings);
 
         setValueFont();
 

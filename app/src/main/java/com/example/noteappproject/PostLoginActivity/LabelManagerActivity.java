@@ -72,6 +72,7 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
         this.recyclerViewLabelCustomAdapter = new RecyclerViewLabelCustomAdapter(LabelManagerActivity.this, this.noteLabelList);
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void DatabaseSetup() {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
@@ -90,13 +91,14 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
                         return;
                     }
 
-                    String labelListFormat = Objects.requireNonNull(task.getResult().getValue()).toString();
+//                    if (!task.getResult().getValue().toString().equals("")) {
+//                        String labelListFormat = Objects.requireNonNull(task.getResult().getValue()).toString();
+//                        String[] labelList = labelListFormat.split("\\|");
+//                        for (String label : labelList){
+//                            noteLabelList.add(new NoteLabel(label));
+//                        }
+//                    }
 
-                    String[] labelList = labelListFormat.split("\\|");
-
-                    for (String label : labelList){
-                        noteLabelList.add(new NoteLabel(label));
-                    }
 
                     recyclerViewLabelCustomAdapter.notifyDataSetChanged();
                     ShowEmptyView();

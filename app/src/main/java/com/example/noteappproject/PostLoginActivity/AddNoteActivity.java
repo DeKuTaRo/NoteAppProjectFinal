@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -33,6 +35,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
+import com.example.noteappproject.Models.Settings;
 import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityAddNoteBinding;
@@ -61,7 +64,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     private LinearLayout layoutWebURL;
     private AlertDialog dialogURL;
     private VideoView videoView;
-    private String selectedNoteColor, selectedImagePath, selectedVideoPath;
+    private String selectedNoteColor;
     private LinearLayout layoutDeleteVideo;
     private Uri imageUri, videoUri;
 
@@ -78,7 +81,8 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private String imageUriTask, videoUriTask;
 
-
+    private String[] labelItems = {"work", "family", "school"};
+    ArrayAdapter<String> adapterLabel;
     private ActivityAddNoteBinding binding;
 
     @SuppressLint("SetTextI18n")
@@ -122,8 +126,19 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         videoView = this.binding.videoView;
 
         selectedNoteColor = "#333333";
-        selectedImagePath = "";
-        selectedVideoPath = "";
+        imageUriTask = "";
+        videoUriTask = "";
+
+        adapterLabel = new ArrayAdapter<String>(this, R.layout.list_item_font_size, labelItems);
+        this.binding.label.setAdapter(adapterLabel);
+
+        this.binding.label.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String item = parent.getItemAtPosition(position).toString();
+                Toast.makeText(AddNoteActivity.this, "Item + " + item, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupDatabase() {
@@ -133,7 +148,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
 
     private void setOnClickEvent() {
-        label.setOnClickListener(this);
+//        label.setOnClickListener(this);
 
         imageBack.setOnClickListener(this);
 
@@ -158,7 +173,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             videoView.setVisibility(View.GONE);
             layoutDeleteVideo.setVisibility(View.GONE);
             v.setVisibility(View.GONE);
-            selectedVideoPath = "";
         });
     }
 
@@ -172,17 +186,17 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             case R.id.imageSave:
                 sendDataToDatabase();
                 break;
-            case R.id.label:
-                showMultipleChoiceLabelDialog();
-                break;
+//            case R.id.label:
+//                showMultipleChoiceLabelDialog();
+//                break;
         }
     }
 
-    private void showMultipleChoiceLabelDialog() {
-        MultipleChoiceDialog multipleChoiceDialog = new MultipleChoiceDialog();
-        multipleChoiceDialog.setCancelable(false);
-        multipleChoiceDialog.show(getSupportFragmentManager(), "Multiple choice dialog !");
-    }
+//    private void showMultipleChoiceLabelDialog() {
+//        MultipleChoiceDialog multipleChoiceDialog = new MultipleChoiceDialog();
+//        multipleChoiceDialog.setCancelable(false);
+//        multipleChoiceDialog.show(getSupportFragmentManager(), "Multiple choice dialog !");
+//    }
 
     private void sendDataToDatabase() {
         String labelValue = label.getText().toString().trim();
@@ -202,7 +216,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         if (layoutWebURL.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL.getText().toString());
         }
-
+//
         if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE ) {
             noteItem.setImagePath("");
         } else {

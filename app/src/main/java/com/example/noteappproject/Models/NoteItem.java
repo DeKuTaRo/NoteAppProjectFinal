@@ -43,23 +43,28 @@ public class NoteItem implements Serializable {
     @ColumnInfo(name = "passwordNote")
     String passwordNote = "";
 
+    @ColumnInfo(name = "isDeleted")
+    boolean isDeleted = false;
+
     @ColumnInfo(name = "created_at")
     long created_at;
+
+
 
     public NoteItem() {
 
     }
 
-//    public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink) {
-//        this.label = label;
-//        this.subtitle = subtitle;
-//        this.text_content = text_content;
-//        this.date = date;
-//        this.color = color;
-//        this.imagePath = imagePath;
-//        this.videoPath = videoPath;
-//        this.webLink = webLink;
-//    }
+    public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink) {
+        this.label = label;
+        this.subtitle = subtitle;
+        this.text_content = text_content;
+        this.date = date;
+        this.color = color;
+        this.imagePath = imagePath;
+        this.videoPath = videoPath;
+        this.webLink = webLink;
+    }
 
 
     public NoteItem(String label, String subtitle, String text_content, String date, String color, String imagePath, String videoPath, String webLink, String passwordNote) {
@@ -179,6 +184,14 @@ public class NoteItem implements Serializable {
 
     public void setPasswordNote(String passwordNote) {
         this.passwordNote = passwordNote;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 
     public long getCreated_at() {
