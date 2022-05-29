@@ -40,6 +40,50 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
+        android:id="@+id/isActivatedTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Account Activate:"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        android:layout_marginTop="20sp"
+        android:layout_marginStart="10sp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/isActivated"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textStyle="italic"
+            android:textSize="20sp"
+            android:text="Activated"
+            android:textColor="green"
+            android:layout_marginTop="10sp"
+            android:layout_marginStart="40sp"
+            android:layout_marginEnd="10sp"
+            android:enabled="false"
+            />
+
+        <ImageButton
+            android:id="@+id/imageButton_ActiveAccount"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="10sp"
+            android:padding="5dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ic_not_activated"
+            android:background="@color/colorSearchNote"/>
+
+    </LinearLayout>
+
+    <TextView
         android:id="@+id/emailAddressTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -102,6 +146,4 @@
             android:background="@color/colorSearchNote"/>
 
     </LinearLayout>
-
-
 </LinearLayout>

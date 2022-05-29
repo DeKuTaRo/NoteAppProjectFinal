@@ -75,9 +75,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     final Calendar calendar = Calendar.getInstance();
 
     private FirebaseAuth mAuth;
-    DatabaseReference reference;
+    private DatabaseReference databaseReference;
     StorageReference storageImageReference, storageVideoReference;
-    private FirebaseDatabase rootNode;
     private FirebaseStorage storage;
     private String userID;
 
@@ -108,11 +107,10 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         View viewRoot = this.binding.getRoot();
         setContentView(viewRoot);
 
-        this.mAuth = FirebaseAuth.getInstance();
-        storage = FirebaseStorage.getInstance();
         noteItem = (NoteItem) getIntent().getSerializableExtra(NoteActivity.KEY_SENDING_NOTE_ITEM);
 
         bindingView();
+        setupDatabase();
         setOnClickEvent();
         setValueIntent();
         initMiscellaneous();
@@ -149,6 +147,27 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         selectedImagePath = "";
     }
 
+    private void setupDatabase() {
+        String userEmail = null;
+
+        this.mAuth = FirebaseAuth.getInstance();
+
+        if (this.mAuth.getCurrentUser() != null) {
+            userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+
+            if (userEmail == null){
+                return;
+            }
+        }
+
+        userEmail = StringUlti.getSubEmailName(userEmail);
+
+        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
+
+
+        this.storage = FirebaseStorage.getInstance();
+    }
+
     private void setOnClickEvent() {
         imageBack.setOnClickListener(this);
         imageUpdate.setOnClickListener(this);
@@ -158,14 +177,10 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         this.binding.imageRemoveWebURL.setOnClickListener(v -> {
             textWebURL_update.setVisibility(View.GONE);
             layoutWebURL_update.setVisibility(View.GONE);
-            idNote = noteItem.getLabel();
+            idNote = String.valueOf(noteItem.getCreated_at());
             textWebURL_update.setText("");
 
-            userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-            reference = FirebaseDatabase.getInstance().getReference("Users").
-                    child(userID).child("NoteItems");
-
-            reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseReference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     snapshot.getRef().child("webLink").setValue("");
@@ -184,14 +199,10 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             findViewById(R.id.imageRemoveImage).setVisibility(View.GONE);
             Picasso.get().load((Uri) null).into(imageNote_update);
 //                noteItem.setImagePath("");
-            idNote = noteItem.getLabel();
-
-            userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-            reference = FirebaseDatabase.getInstance().getReference("Users").
-                    child(userID).child("NoteItems");
+            idNote = String.valueOf(noteItem.getCreated_at());
 
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-            imageReference.delete().addOnSuccessListener(unused -> reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     snapshot.getRef().child("imagePath").setValue("");
@@ -210,14 +221,10 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             videoView_update.setVideoURI(null);
             videoView_update.setVisibility(View.GONE);
 
-            idNote = noteItem.getLabel();
-
-            userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-            reference = FirebaseDatabase.getInstance().getReference("Users").
-                    child(userID).child("NoteItems");
+            idNote = String.valueOf(noteItem.getCreated_at());
 
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-            videoReference.delete().addOnSuccessListener(unused -> reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     snapshot.getRef().child("videoPath").setValue("");
@@ -510,9 +517,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     @SuppressLint("ShowToast")
     public void updateData() {
-        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail()));
-        reference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
-
         final String currentTimeStamp = String.valueOf(noteItem.getCreated_at());
 
         label = label_update.getText().toString().trim();
@@ -571,7 +575,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         noteItem.setDate(mdate);
         noteItem.setColor(selectedNoteColor);
 
-        reference.child(currentTimeStamp).setValue(noteItem);
+        databaseReference.child(currentTimeStamp).setValue(noteItem);
 
         Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
 
@@ -694,22 +698,12 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                 .setPositiveButton("Confirm", (dialogInterface, i) -> {
                     String passwordNoteValue = passwordNote.getText().toString().trim();
 
-                    int id = noteItem.getID();
-                    idNote = noteItem.getLabel();
-
-                    noteItem = new NoteItem(id, "");
-
+                    long noteItemID = noteItem.getCreated_at();
                     noteItem.setPasswordNote(passwordNoteValue);
 
-                    userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-                    reference = FirebaseDatabase.getInstance().getReference("Users").
-                            child(userID).child("NoteItems");
-
-                    reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+                    databaseReference.child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                            snapshot.getRef().child("id").setValue(id);
                             snapshot.getRef().child("passwordNote").setValue(passwordNoteValue);
                             Toast.makeText(UpdateActivity.this, "Set password successfully", Toast.LENGTH_SHORT).show();
                         }
@@ -725,28 +719,18 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                     intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
                     intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.SET_PASSWORD);
                     finish();
-
                 })
                 .setNegativeButton("Cancel", (dialogInterface, i) -> {
-
+                    dialogInterface.dismiss();
                 })
                 .setNeutralButton("Remove", (dialog, which) -> {
 
-                    int id = noteItem.getID();
-                    idNote = noteItem.getLabel();
-
-                    noteItem = new NoteItem(id, "");
+                    long noteItemID = noteItem.getCreated_at();
                     noteItem.setPasswordNote("");
 
-                    userID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-                    reference = FirebaseDatabase.getInstance().getReference("Users").
-                            child(userID).child("NoteItems");
-
-                    reference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
+                    databaseReference.child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                            snapshot.getRef().child("id").setValue(id);
                             snapshot.getRef().child("passwordNote").setValue("");
                             Toast.makeText(UpdateActivity.this, "Remove password successfully", Toast.LENGTH_SHORT).show();
                         }

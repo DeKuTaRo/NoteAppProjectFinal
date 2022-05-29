@@ -17,13 +17,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.User;
 import com.example.noteappproject.R;
+import com.example.noteappproject.ReLoginActivity.MainActivity;
 import com.example.noteappproject.databinding.ActivityProfileBinding;
+import com.example.noteappproject.utilities.StringUlti;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -45,10 +48,6 @@ public class ProfileActivity extends AppCompatActivity {
 
     private String imageAvatarUriTask;
     private Uri imageAvatarUri;
-    private String userID;
-
-    private User userProfile;
-
 
     private static final int REQUEST_CODE_STORAGE_AVATAR_PERMISSION = 2;
     private static final int REQUEST_CODE_SELECT_IMAGE_AVATAR = 3;
@@ -63,13 +62,10 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         this.user = FirebaseAuth.getInstance().getCurrentUser();
-        this.reference = FirebaseDatabase.getInstance().getReference("Users");
-        this.userID = this.user.getUid();
+        String userEmail = StringUlti.getSubEmailName(this.user.getEmail());
+        this.reference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail);
 
-//        final TextView fullNameTextView = this.binding.fullName;
-//        final TextView emailTextView = this.binding.emailAddress;
-
-        this.reference.child(this.userID).addListenerForSingleValueEvent(new ValueEventListener() {
+        this.reference.child("Account").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 User userProfileValue = snapshot.getValue(User.class);
@@ -107,6 +103,55 @@ public class ProfileActivity extends AppCompatActivity {
 
         this.binding.imageEditName.setOnClickListener(v -> binding.fullName.setEnabled(true));
 
+        binding.isActivated.setText(user.isEmailVerified() ? "Activated" : "Not activated");
+
+        if ( user.isEmailVerified() ){
+            this.binding.imageButtonActiveAccount.setActivated(false);
+            this.binding.imageButtonActiveAccount.setImageResource(R.drawable.ic_is_activated);
+        } else {
+            this.binding.imageButtonActiveAccount.setActivated(true);
+            this.binding.imageButtonActiveAccount.setImageResource(R.drawable.ic_not_activated);
+            this.binding.imageButtonActiveAccount.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // Create the object of
+                    // AlertDialog Builder class
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    // Set Alert Title
+                    builder.setTitle("Active account !");
+                    // Set the message show for the Alert time
+                    builder.setMessage("Your account haven't been activated !");
+                    // Set Cancelable false
+                    // for when the user clicks on the outside
+                    // the Dialog Box then it will remain show
+                    builder.setCancelable(false);
+
+                    // Set the positive button with yes name
+                    // OnClickListener method is use of
+                    // DialogInterface interface.
+                    builder.setPositiveButton( "Send activated email", (dialog, which) -> {
+                        // When the user click yes button
+                        // then app will close
+                        user.sendEmailVerification()
+                                .addOnCompleteListener(task1 -> {
+                                    if (task1.isSuccessful()) {
+                                        Toast.makeText(ProfileActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
+                                        dialog.dismiss();
+                                    }
+                                });
+                    });
+
+                    builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
+
+                    // Create the Alert dialog
+                    AlertDialog alertDialog = builder.create();
+
+                    // Show the Alert Dialog box
+                    alertDialog.show();
+                }
+            });
+        }
+
     }
 
     @Override
@@ -136,8 +181,7 @@ public class ProfileActivity extends AppCompatActivity {
         String fullName = binding.fullName.getText().toString().trim();
 
         if (binding.imageAvatar.getDrawable() == null) {
-            userProfile = new User(fullName, "");
-            reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+            reference.child("Account").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     snapshot.getRef().child("fullName").setValue(fullName);
@@ -164,8 +208,7 @@ public class ProfileActivity extends AppCompatActivity {
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     imageAvatarUriTask = task.getResult().toString();
-                    userProfile = new User(fullName, imageAvatarUriTask);
-                    reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+                    reference.child("Account").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             snapshot.getRef().child("fullName").setValue(fullName);
