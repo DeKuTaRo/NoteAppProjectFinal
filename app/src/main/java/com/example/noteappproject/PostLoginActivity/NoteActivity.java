@@ -440,6 +440,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     };
                 });
                 return true;
+            case R.id.shareNote:
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, selectedNote.toString());
+                sendIntent.setType("text/plain");
+
+                Intent shareIntent = Intent.createChooser(sendIntent, "Note");
+                startActivity(shareIntent);
             default:
                 return false;
         }

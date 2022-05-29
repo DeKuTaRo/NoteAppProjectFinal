@@ -188,4 +188,19 @@ public class NoteItem implements Serializable {
     public void setCreated_at(long created_at) {
         this.created_at = created_at;
     }
+
+    @Override
+    public String toString() {
+        return "NoteItem{" +
+                "label='" + label + '\'' +
+                ", subtitle='" + subtitle + '\'' +
+                ", text_content='" + text_content + '\'' +
+                ", date='" + date + '\'' +
+                ", color='" + color + '\'' +
+                ", imagePath='" + imagePath + '\'' +
+                ", videoPath='" + videoPath + '\'' +
+                ", webLink='" + webLink + '\'' +
+                ", created_at=" + created_at +
+                '}';
+    }
 }

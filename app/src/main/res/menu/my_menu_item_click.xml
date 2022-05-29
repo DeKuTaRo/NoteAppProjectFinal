@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/pin"
-        android:title="PIN/UPIN"
+        android:title="PIN/UNPIN"
         android:icon="@drawable/ic_pin"
 
         />
@@ -15,8 +15,8 @@
         />
 
     <item
-        android:id="@+id/moveToTrashBin"
-        android:title="MOVE TO TRASH BIN"
+        android:id="@+id/shareNote"
+        android:title="SHARE NOTE"
         android:icon="@drawable/ic_delete"
         />
 

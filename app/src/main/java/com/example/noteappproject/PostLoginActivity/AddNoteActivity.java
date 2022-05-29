@@ -245,6 +245,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     videoUriTask = task.getResult().toString();
+
                     noteItem.setVideoPath(videoUriTask);
                 }
             });
