@@ -121,8 +121,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         this.recyclerViewNoteCustomAdapter = new RecyclerViewNoteCustomAdapter(this, this.list_NoteItem, new RecyclerViewNoteCustomAdapter.IItemClick() {
             @Override
-            public void onClick(NoteItem noteItem) {
+            public void onClick(NoteItem noteItem, int position) {
                 // Khi nhấn vào một item thì check nếu note đó có yêu cầu password thì hiện dialog để check pass.
+                selectedPosition = position;
                 if (noteItem.getPasswordNote().isEmpty()) {
                     // Truyền Note item cần update sang
                     Intent intent = new Intent(NoteActivity.this, UpdateActivity.class);
@@ -179,13 +180,16 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
-                for (int i = 0; i < list_NoteItem.size(); i++) {
-                    if (noteItem.getLabel().equals(list_NoteItem.get(i).getLabel())) {
-                        list_NoteItem.set(i, noteItem);
-                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
-                        break;
-                    }
-                }
+//                for (int i = 0; i < list_NoteItem.size(); i++) {
+//                    if (noteItem.getCreated_at() == list_NoteItem.get(i).getCreated_at() ) {
+//                        list_NoteItem.set(i, noteItem);
+//                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
+//                        break;
+//                    }
+//                }
+
+                list_NoteItem.set(selectedPosition, noteItem);
+                recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -319,13 +323,17 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     .update(new_notes.getID(), new_notes.getLabel(), new_notes.getSubtitle()
                             , new_notes.getText_content(), new_notes.getDate()
                             , new_notes.getColor(), new_notes.getImagePath(), new_notes.getWebLink());
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             return;
         }
 
         if (resultCode == UpdateActivity.REMOVE_PASSWORD || resultCode == UpdateActivity.SET_PASSWORD ){
             RoomDB.getInstance(this).noteDAO().updatePasswordNote(new_notes.getID(), new_notes.getPasswordNote());
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
             return;
         }
+
+
     }
 
     private void showPopUp(CardView cardView) {

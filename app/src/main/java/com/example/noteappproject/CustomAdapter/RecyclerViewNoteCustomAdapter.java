@@ -33,7 +33,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
 
     public interface IItemClick {
 
-        void onClick(NoteItem noteItem);
+        void onClick(NoteItem noteItem, int position);
 
         void onLongClick(NoteItem noteItem, CardView cardView, int position);
     }
@@ -119,7 +119,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 this.binding_List_View.timeCreate.setText("Created at: " + noteItem.getDate());
 
 
-                this.binding_List_View.mainCardView.setOnClickListener(view -> itemClick.onClick(noteItem));
+                this.binding_List_View.mainCardView.setOnClickListener(view -> itemClick.onClick(noteItem, position));
 
                 this.binding_List_View.mainCardView.setOnLongClickListener(view -> {
                     itemClick.onLongClick(noteItem, binding_List_View.mainCardView, position);
@@ -173,7 +173,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 this.binding_Grid_View.timeCreate.setText("Created at: " + noteItem.getDate());
 
 
-                this.binding_Grid_View.mainCardView.setOnClickListener(view -> itemClick.onClick(noteItem));
+                this.binding_Grid_View.mainCardView.setOnClickListener(view -> itemClick.onClick(noteItem, position));
 
                 this.binding_Grid_View.mainCardView.setOnLongClickListener(view -> {
                     itemClick.onLongClick(noteItem, binding_Grid_View.mainCardView, position);

@@ -194,7 +194,7 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
 
     private void editLabel(int labelPosition) {
         final EditText editLabel = new EditText(this);
-        editLabel.setHint("Update label here");
+        editLabel.setHint(this.noteLabelList.get(labelPosition).getLabelName());
 
         LinearLayout ll = new LinearLayout(this);
         ll.setOrientation(LinearLayout.VERTICAL);
@@ -202,7 +202,7 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
         ll.addView(editLabel);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle("Set password for note")
+                .setTitle("Edit note label")
                 .setView(ll)
                 .setPositiveButton("Confirm", (dialogInterface, i) -> {
                     String newLabel = editLabel.getText().toString().trim();
