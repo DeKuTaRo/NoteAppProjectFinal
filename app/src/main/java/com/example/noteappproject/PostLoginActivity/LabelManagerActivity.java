@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -96,6 +97,9 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
                     for (String label : labelList){
                         noteLabelList.add(new NoteLabel(label));
                     }
+
+                    recyclerViewLabelCustomAdapter.notifyDataSetChanged();
+                    ShowEmptyView();
                 });
     }
 
@@ -172,8 +176,6 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-//        AdapterView.AdapterContextMenuInfo adapterContextMenuInfo = (AdapterView.AdapterContextMenuInfo) menuInfo;
-//        int eventPosition = adapterContextMenuInfo.position;
         getMenuInflater().inflate(R.menu.context_menu_label_operation, menu);
     }
 

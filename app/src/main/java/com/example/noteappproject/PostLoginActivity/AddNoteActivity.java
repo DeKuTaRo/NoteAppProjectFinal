@@ -11,6 +11,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -202,8 +203,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             noteItem.setWebLink(textWebURL.getText().toString());
         }
 
-        // Check xem có thêm hình không
-        if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE) {
+        if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE ) {
             noteItem.setImagePath("");
         } else {
             // Up Uri hình lên firebase
@@ -263,7 +263,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         noteItem.setCreated_at(created_at);
 
         final String currentTimeStamp = String.valueOf(created_at);
-
         databaseReference.child(currentTimeStamp).setValue(noteItem);
 
         RoomDB.getInstance(this).noteDAO().insert(noteItem);

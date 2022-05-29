@@ -39,7 +39,8 @@
         android:drawablePadding="10dp"
         android:layout_marginTop="50sp"
         android:layout_marginStart="15sp"
-        android:layout_marginEnd="15sp"/>
+        android:layout_marginEnd="15sp"
+        android:text="taolahocsinh123@gmail.com"/>
 
     <EditText
         android:id="@+id/passwordEditText"
@@ -53,7 +54,8 @@
         android:textSize="18sp"
         android:layout_marginTop="20sp"
         android:layout_marginStart="15sp"
-        android:layout_marginEnd="15sp"/>
+        android:layout_marginEnd="15sp"
+        android:text="456789"/>
 
     <ProgressBar
         android:id="@+id/progressBar"

@@ -168,6 +168,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                     list_NoteItem.add(0, noteItem);
                     recyclerViewNoteCustomAdapter.notifyItemInserted(0);
                 }
+                ShowEmptyView();
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -190,19 +191,10 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                NoteItem noteItem = snapshot.getValue(NoteItem.class);
-                if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
+                NoteItem noteItem_Deleted = snapshot.getValue(NoteItem.class);
+                if (noteItem_Deleted == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
-                for (int i = 0; i < list_NoteItem.size(); i++) {
-                    if (noteItem.getLabel().equals(list_NoteItem.get(i).getLabel())) {
-                        list_NoteItem.remove(list_NoteItem.get(i));
-                        recyclerViewNoteCustomAdapter.notifyItemRemoved(i);
-                        recyclerViewNoteCustomAdapter.notifyItemRangeChanged(i, list_NoteItem.size()- 1);
-                        break;
-                    }
-                }
-
             }
 
             @Override
@@ -403,7 +395,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     public boolean onMenuItemClick(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.pin :
-
                 selectedNote.setPinned(!selectedNote.isPinned());
                 RoomDB.getInstance(this).noteDAO().pin(selectedNote.getID(), selectedNote.isPinned());
                 Toast.makeText(NoteActivity.this, selectedNote.isPinned() ? "Pinned" : "Unpinned", Toast.LENGTH_SHORT).show();
@@ -420,25 +411,17 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 return true;
 
             case R.id.delete:
-                onClickDeleteItem(selectedNote);
+                deleteNoteStorage(selectedNote);
 
-//                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
-                RoomDB.getInstance(this).noteDAO().delete(selectedNote);
+                RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
 
                 this.list_NoteItem.remove(selectedNote);
                 this.databaseReference.child(String.valueOf(selectedNote.getCreated_at())).removeValue().addOnCompleteListener(task -> {
                     if (task.isSuccessful()){
-                        int j = 0;
-                        for (NoteItem noteItem : list_NoteItem) {
-                            if (noteItem.getCreated_at() == selectedNote.getCreated_at()) {
-                                recyclerViewNoteCustomAdapter.notifyItemRemoved(j);
-                                recyclerViewNoteCustomAdapter.notifyItemRangeChanged(j, list_NoteItem.size());
-                                break;
-                            }
-                            j++;
-                        };
+                        recyclerViewNoteCustomAdapter.notifyDataSetChanged();
                     };
                 });
+
                 return true;
             case R.id.shareNote:
                 Intent sendIntent = new Intent();
@@ -453,7 +436,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         }
     }
 
-    private void onClickDeleteItem(NoteItem noteItem) {
+    private void deleteNoteStorage(NoteItem noteItem) {
         String noteID = String.valueOf(noteItem.getCreated_at());
 
         storage = FirebaseStorage.getInstance();
@@ -462,31 +445,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-//            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
-//
-//            }));
-
             imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
         }
-//        else {
-//            databaseReference.child(noteID).removeValue((error, ref) -> {
-//
-//            });
-//        }
+
         if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-//            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
-//
-//            }));
             videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
 
         }
-//        else {
-//            databaseReference.child(noteID).removeValue((error, ref) -> {
-//
-//            });
-//        }
-        databaseReference.child(noteID).removeValue();
 
         Toast.makeText(NoteActivity.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
     }
@@ -509,6 +475,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             // Mở activity settings
             case R.id.settingBtn:
                 startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            // Mở activity settings
+            case R.id.profileBtn:
+                startActivity(new Intent(this, ProfileActivity.class));
+                break;
+            // Mở activity settings
+            case R.id.optionMenuItem_LabelManager:
+                startActivity(new Intent(this, LabelManagerActivity.class));
                 break;
             default:
                 return super.onOptionsItemSelected(item);

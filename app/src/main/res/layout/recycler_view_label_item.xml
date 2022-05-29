@@ -28,7 +28,6 @@
             android:id="@+id/textView_Label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5sp"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:padding="5dp"
@@ -36,7 +35,7 @@
             android:singleLine="true"
             android:text="Label"
             android:textSize="20sp"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textStyle="bold"
             android:layout_weight="1"
 

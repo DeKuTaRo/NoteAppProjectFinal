@@ -3,23 +3,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/optionMenuItem_SwitchLayoutMode"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_baseline_grid_on_24"
-        android:title="Switch Layout Mode"
+        android:id="@+id/optionMenuItem_LabelManager"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_baseline_label_important_24"
+        android:title="@string/label_manager"
         />
+
+    <item
+        android:id="@+id/optionMenuItem_SwitchLayoutMode"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_baseline_grid_on_24"
+        android:title="@string/switch_layout_mode"
+        />
+
     <item
         android:id="@+id/profileBtn"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_profile"
-        android:title="SETTINGS"
+        android:title="@string/profiles"
         />
 
     <item
         android:id="@+id/settingBtn"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_settings"
-        android:title="SETTINGS"
+        android:title="@string/settings"
         />
 
 </menu>

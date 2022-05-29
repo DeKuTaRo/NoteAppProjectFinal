@@ -4,6 +4,10 @@
     <string name="tbt_note_application">TBT Note Application</string>
     <string name="app_title">TBT S\'Note</string>
     <string name="app_sub_title">TBT Super Note Application</string>
+    <string name="label_manager">Label Manager</string>
+    <string name="switch_layout_mode">Switch Layout Mode</string>
+    <string name="profiles">Profiles</string>
+    <string name="settings">Settings</string>
 
     <string-array name="available_label">
         <item>School</item>

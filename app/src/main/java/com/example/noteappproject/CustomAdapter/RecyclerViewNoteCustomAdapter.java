@@ -99,7 +99,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 if (noteItem.getSubtitle().trim().isEmpty()) {
                     this.binding_List_View.subtitle.setVisibility(View.GONE);
                 } else {
-                    this.binding_List_View.subtitle.setText(noteItem.getSubtitle());
+                    this.binding_List_View.subtitle.setText("Note subtitle: " + noteItem.getSubtitle());
                 }
 
                 if (noteItem.getColor() != null) {
@@ -114,9 +114,9 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                     this.binding_List_View.imageViewPassword.setImageResource(R.drawable.ic_lock);
                 }
 
-                this.binding_List_View.label.setText(noteItem.getLabel());
-                this.binding_List_View.textContent.setText(noteItem.getText_content());
-                this.binding_List_View.timeCreate.setText(noteItem.getDate());
+                this.binding_List_View.label.setText("Note label: " + noteItem.getLabel());
+                this.binding_List_View.textContent.setText("Note content: " + noteItem.getText_content());
+                this.binding_List_View.timeCreate.setText("Created at: " + noteItem.getDate());
 
 
                 this.binding_List_View.mainCardView.setOnClickListener(view -> itemClick.onClick(noteItem));
@@ -137,7 +137,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 if (noteItem.getSubtitle().trim().isEmpty()) {
                     this.binding_Grid_View.subtitle.setVisibility(View.GONE);
                 } else {
-                    this.binding_Grid_View.subtitle.setText(noteItem.getSubtitle());
+                    this.binding_Grid_View.subtitle.setText("Note subtitle: " + noteItem.getSubtitle());
                 }
 
                 if (noteItem.getText_content().trim().isEmpty()) {
@@ -169,8 +169,8 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 }
 
 
-                this.binding_Grid_View.label.setText(noteItem.getLabel());
-                this.binding_Grid_View.timeCreate.setText(noteItem.getDate());
+                this.binding_Grid_View.label.setText("Note label: " + noteItem.getLabel());
+                this.binding_Grid_View.timeCreate.setText("Created at: " + noteItem.getDate());
 
 
                 this.binding_Grid_View.mainCardView.setOnClickListener(view -> itemClick.onClick(noteItem));
