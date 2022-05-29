@@ -2,12 +2,13 @@ package com.example.noteappproject.PostLoginActivity;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -52,6 +53,17 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
         DatabaseSetup();
         SetOnClickEvent();
         SetUpNoteRecyclerView();
+        ShowEmptyView();
+    }
+
+    private void ShowEmptyView(){
+        if (this.recyclerViewLabelCustomAdapter.getItemCount() == 0) {
+            this.binding.linearLayoutEmptyLabel.setVisibility(View.VISIBLE);
+            this.binding.recycleViewLabelList.setVisibility(View.GONE);
+        }else {
+            this.binding.linearLayoutEmptyLabel.setVisibility(View.GONE);
+            this.binding.recycleViewLabelList.setVisibility(View.VISIBLE);
+        }
     }
 
     private void InitializeFields() {
@@ -179,7 +191,35 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void editLabel(int labelPosition) {
+        final EditText editLabel = new EditText(this);
+        editLabel.setHint("Update label here");
 
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+
+        ll.addView(editLabel);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("Set password for note")
+                .setView(ll)
+                .setPositiveButton("Confirm", (dialogInterface, i) -> {
+                    String newLabel = editLabel.getText().toString().trim();
+
+                    if (newLabel.equals("")){
+                        editLabel.setError("Label can't be empty !");
+                        editLabel.requestFocus();
+                        return;
+                    }
+
+                    noteLabelList.get(labelPosition).setLabelName(newLabel);
+                    recyclerViewLabelCustomAdapter.notifyItemChanged(labelPosition);
+                    saveToFirebase();
+                    dialogInterface.dismiss();
+                })
+                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void deleteLabel(int labelPosition) {
@@ -192,6 +232,89 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
             recyclerViewLabelCustomAdapter.notifyItemRemoved(labelPosition);
             recyclerViewLabelCustomAdapter.notifyItemRangeChanged(labelPosition, noteLabelList.size());
             saveToFirebase();
+            ShowEmptyView();
+            dialogInterface.dismiss();
+        });
+
+        alertDialog_Builder.setNegativeButton("No", null);
+        alertDialog_Builder.setCancelable(false);
+
+        Dialog dialog = alertDialog_Builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.label_manager_option_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // Set on option item selected
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.optionMenu_itemRemoveAll:
+                optionMenuItem_RemoveAll();
+                break;
+            case R.id.optionMenu_itemRemoveSelected:
+                optionMenuItem_RemoveSelected();
+                break;
+            default:
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void optionMenuItem_RemoveSelected() {
+        AlertDialog.Builder alertDialog_Builder = new AlertDialog.Builder(this);
+
+        alertDialog_Builder.setTitle("Confirm Remove Selected !");
+        alertDialog_Builder.setMessage("Are you sure you want to remove selected label !");
+        alertDialog_Builder.setPositiveButton("Yes", (dialogInterface, index) -> {
+
+            ArrayList<Integer> indexRemoved = new ArrayList<>();
+            int count = 0;
+            for ( int i = 0 ; i < noteLabelList.size() ; i++ ){
+                if ( noteLabelList.get(i).isCheck() ){
+                    indexRemoved.add(i);
+                    noteLabelList.remove(i);
+                    i--;
+                    count++;
+                }
+            }
+            if ( count == 0 ){
+                Toast.makeText(LabelManagerActivity.this,"There is no selected item Can't remove !!!", Toast.LENGTH_SHORT).show();
+            } else {
+                for (Integer integer : indexRemoved) {
+                    recyclerViewLabelCustomAdapter.notifyItemRemoved(integer);
+                    recyclerViewLabelCustomAdapter.notifyItemRangeChanged(integer, noteLabelList.size() - integer);
+                }
+                ShowEmptyView();
+                Toast.makeText(LabelManagerActivity.this,"Remove selected label successfully !", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        alertDialog_Builder.setNegativeButton("No", null);
+        alertDialog_Builder.setCancelable(false);
+
+        Dialog dialog = alertDialog_Builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
+    }
+
+    private void optionMenuItem_RemoveAll() {
+
+        AlertDialog.Builder alertDialog_Builder = new AlertDialog.Builder(this);
+
+        alertDialog_Builder.setTitle("Confirm Remove All !");
+        alertDialog_Builder.setMessage("Are you sure you want to remove all label !");
+        alertDialog_Builder.setPositiveButton("Yes", (dialogInterface, i) -> {
+            this.noteLabelList.clear();
+            this.recyclerViewLabelCustomAdapter.notifyDataSetChanged();
+            ShowEmptyView();
+            Toast.makeText(LabelManagerActivity.this,"Remove all note label successfully !", Toast.LENGTH_SHORT).show();
         });
 
         alertDialog_Builder.setNegativeButton("No", null);

@@ -35,6 +35,7 @@ import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityAddNoteBinding;
+import com.example.noteappproject.utilities.MultipleChoiceDialog;
 import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
@@ -47,9 +48,10 @@ import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
-public class AddNoteActivity extends AppCompatActivity implements OnClickListener{
+public class AddNoteActivity extends AppCompatActivity implements OnClickListener, MultipleChoiceDialog.IOnMultipleChoiceListener{
     private EditText label, subtitle, textContent;
     private ImageView imageBack, imageSave, imageNote;
     private TextView textDateTime;
@@ -130,6 +132,8 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
 
     private void setOnClickEvent() {
+        label.setOnClickListener(this);
+
         imageBack.setOnClickListener(this);
 
         imageSave.setOnClickListener(this);
@@ -167,7 +171,16 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             case R.id.imageSave:
                 sendDataToDatabase();
                 break;
+            case R.id.label:
+                showMultipleChoiceLabelDialog();
+                break;
         }
+    }
+
+    private void showMultipleChoiceLabelDialog() {
+        MultipleChoiceDialog multipleChoiceDialog = new MultipleChoiceDialog();
+        multipleChoiceDialog.setCancelable(false);
+        multipleChoiceDialog.show(getSupportFragmentManager(), "Multiple choice dialog !");
     }
 
     private void sendDataToDatabase() {
@@ -193,7 +206,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         if (imageNote.getDrawable() == null || imageNote.getVisibility() == View.GONE) {
             noteItem.setImagePath("");
         } else {
-            // Up Uri hình lên firebase ????
+            // Up Uri hình lên firebase
             StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
 
             StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
@@ -465,5 +478,26 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private void addVoice() {
         Toast.makeText(AddNoteActivity.this, "This function is developing", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPositiveButtonClicked(List<String> selectedLabel) {
+        StringBuilder builder = new StringBuilder();
+
+        for ( String label : selectedLabel ){
+            builder.append(label);
+            builder.append(" | ");
+        }
+
+        builder.deleteCharAt(builder.lastIndexOf("|"));
+        String formatedLabel = builder.toString();
+
+        label.setText(formatedLabel);
+    }
+
+    @Override
+    public void onNeutralButtonClicked() {
+        Intent intent = new Intent(AddNoteActivity.this, LabelManagerActivity.class);
+        startActivity(intent);
     }
 }

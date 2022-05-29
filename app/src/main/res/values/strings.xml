@@ -4,4 +4,11 @@
     <string name="tbt_note_application">TBT Note Application</string>
     <string name="app_title">TBT S\'Note</string>
     <string name="app_sub_title">TBT Super Note Application</string>
+
+    <string-array name="available_label">
+        <item>School</item>
+        <item>Home</item>
+        <item>Work</item>
+        <item>Family</item>
+    </string-array>
 </resources>

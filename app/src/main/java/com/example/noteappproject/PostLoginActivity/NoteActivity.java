@@ -103,6 +103,17 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         SetOnClickEvent();
         SetUpNoteRecyclerView();
         SearchViewInputText();
+        ShowEmptyView();
+    }
+
+    private void ShowEmptyView(){
+        if (this.recyclerViewNoteCustomAdapter.getItemCount() == 0) {
+            this.binding.linearLayoutEmptyView.setVisibility(View.VISIBLE);
+            this.binding.recycleView.setVisibility(View.GONE);
+        }else {
+            this.binding.linearLayoutEmptyView.setVisibility(View.GONE);
+            this.binding.recycleView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void InitializeNoteRecyclerView() {
@@ -291,6 +302,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                                 case NoteActivity.VALUE_REQUEST_ADD_NOTE:
                                     list_NoteItem.add(0, new_notes);
                                     recyclerViewNoteCustomAdapter.notifyItemInserted(0);
+                                    ShowEmptyView();
                                     break;
                                 case NoteActivity.VALUE_REQUEST_UPDATE_NOTE:
                                     int resultCode = intentData.getIntExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, -1);
@@ -445,6 +457,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 //            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue((error, ref) -> {
 //
 //            }));
+
             imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
         }
 //        else {
