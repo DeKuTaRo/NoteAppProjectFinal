@@ -206,6 +206,13 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem_Deleted == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
+                for (int i = 0; i < list_NoteItem.size(); i++) {
+                    if (noteItem_Deleted.getCreated_at() == (list_NoteItem.get(i).getCreated_at())) {
+                        list_NoteItem.remove(list_NoteItem.get(i));
+                        recyclerViewNoteCustomAdapter.notifyItemRemoved(i);
+                        break;
+                    }
+                }
             }
 
             @Override
