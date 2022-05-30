@@ -23,6 +23,7 @@ import java.util.List;
 public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<RecyclerViewNoteCustomAdapter.ViewHolder> {
     public static final int TYPE_LIST_VIEW = 0;
     public static final int TYPE_GRID_VIEW = 1;
+    public static final int TYPE_STAGGED_VIEW = 2;
 
     private int type;
 
@@ -53,7 +54,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
             return new RecyclerViewNoteCustomAdapter.ViewHolder(viewRoot);
         }
 
-        if ( this.type == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW ){
+        if ( this.type == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW || this.type == RecyclerViewNoteCustomAdapter.TYPE_STAGGED_VIEW ){
             ActivityGridViewItemNoteItemBinding viewRoot = ActivityGridViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new RecyclerViewNoteCustomAdapter.ViewHolder(viewRoot);
         }
@@ -127,7 +128,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 });
             }
 
-            if ( type == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW ){
+            if ( type == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW || type == RecyclerViewNoteCustomAdapter.TYPE_STAGGED_VIEW){
                 if (noteItem.isPinned()) {
                     this.binding_Grid_View.imageViewPin.setImageResource(R.drawable.ic_pin);
                 } else {
