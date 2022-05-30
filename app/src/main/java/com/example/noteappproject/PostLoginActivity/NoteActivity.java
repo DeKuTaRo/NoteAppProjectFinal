@@ -55,6 +55,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     public static final String KEY_REQUEST_NOTE_OPERATION = "REQUEST_NOTE_OPERATION";
     public static final int VALUE_REQUEST_ADD_NOTE = 101;
     public static final int VALUE_REQUEST_UPDATE_NOTE = 102;
+    public static final int VALUE_REQUEST_DELETE_NOTE = 103;
 
     public static final String KEY_SENDING_NOTE_ITEM = "NOTE_ITEM";
     public static final String KEY_SENDING_POSITION_NOTE_ITEM = "POSITION_NOTE_ITEM";

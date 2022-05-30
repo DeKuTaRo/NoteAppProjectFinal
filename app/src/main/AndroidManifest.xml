@@ -24,9 +24,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Design.Light.NoActionBar"
         android:usesCleartextTraffic="true">
+
         <activity
             android:name=".PostLoginActivity.LabelManagerActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:label="Note"
+            android:theme="@style/Theme.Design.Light"/>
+
         <activity
             android:name=".AdvancedFunction.TrashBinActivity"
             android:exported="false"
@@ -56,6 +60,7 @@
         <activity
             android:name=".ReLoginActivity.RegisterUser"
             android:exported="false" />
+
         <activity
             android:name=".ReLoginActivity.SplashActivity"
             android:exported="true">
@@ -65,6 +70,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".ReLoginActivity.MainActivity"
             android:exported="false" />

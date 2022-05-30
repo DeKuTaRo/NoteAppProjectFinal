@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -76,7 +75,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
-    StorageReference storageImageReference, storageVideoReference;
+    private StorageReference storageImageReference, storageVideoReference;
     private FirebaseStorage storage;
     private String userID;
 
@@ -163,8 +162,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         userEmail = StringUlti.getSubEmailName(userEmail);
 
         this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
-
-
         this.storage = FirebaseStorage.getInstance();
     }
 
@@ -264,7 +261,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             layoutDeleteVideo_update.setVisibility(View.VISIBLE);
             videoView_update.setVisibility(View.VISIBLE);
             videoView_update.setVideoURI(Uri.parse(noteItem.getVideoPath()));
-            videoView_update.start();
+            //videoView_update.start();
         }
     }
 
@@ -517,6 +514,58 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     @SuppressLint("ShowToast")
     public void updateData() {
+//        final String currentTimeStamp = String.valueOf(noteItem.getCreated_at());
+//
+//        label = label_update.getText().toString().trim();
+//        textContent = textContent_update.getText().toString().trim();
+//        subtitle = subtitle_update.getText().toString().trim();
+//        mdate = textDateTime_update.getText().toString().trim();
+//
+//        if (layoutWebURL_update.getVisibility() == View.VISIBLE) {
+//            noteItem.setWebLink(textWebURL_update.getText().toString());
+//        }
+//
+//        if (imageNote_update.getDrawable() == null || imageNote_update.getVisibility() == View.GONE) {
+//            noteItem.setImagePath("");
+//        } else {
+//            StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
+//
+//            StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
+//                    "." + getFileExtension(imageUriUpdate));
+//            imageReference.putFile(imageUriUpdate).continueWithTask(task -> {
+//                if (!task.isSuccessful()) {
+//                    throw Objects.requireNonNull(task.getException());
+//                }
+//
+//                return imageReference.getDownloadUrl();
+//            }).addOnCompleteListener(task -> {
+//                if (task.isSuccessful()) {
+//                    imageUriTaskUpdate = task.getResult().toString();
+//                    noteItem.setImagePath(imageUriTaskUpdate);
+//                }
+//            });
+//        }
+//
+//        if (videoView_update.getVisibility() == View.GONE) {
+//            noteItem.setVideoPath("");
+//        } else {
+//            StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+//            StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
+//                    "." + getFileExtension(videoUriUpdate));
+//            videoReference.putFile(videoUriUpdate).continueWithTask(task -> {
+//                if (!task.isSuccessful()) {
+//                    throw Objects.requireNonNull(task.getException());
+//                }
+//
+//                return videoReference.getDownloadUrl();
+//            }).addOnCompleteListener(task -> {
+//                if (task.isSuccessful()) {
+//                    videoUriTaskUpdate = task.getResult().toString();
+//                    noteItem.setVideoPath(videoUriTaskUpdate);
+//                }
+//            });
+//        }
+
         final String currentTimeStamp = String.valueOf(noteItem.getCreated_at());
 
         label = label_update.getText().toString().trim();
@@ -524,17 +573,48 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         subtitle = subtitle_update.getText().toString().trim();
         mdate = textDateTime_update.getText().toString().trim();
 
+        if (label.isEmpty()) {
+            label_update.setError("Label must not be empty");
+            label_update.requestFocus();
+            return;
+        }
+
+        NoteItem noteItem = new NoteItem();
+
+        // Nếu có thêm web URL
         if (layoutWebURL_update.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL_update.getText().toString());
         }
 
-        if (imageNote_update.getDrawable() == null || imageNote_update.getVisibility() == View.GONE) {
+        // Không up hình lẫn video
+        if ( (imageNote_update.getDrawable() == null || imageNote_update.getVisibility() == View.GONE ) && videoView_update.getVisibility() == View.GONE ) {
             noteItem.setImagePath("");
-        } else {
+            noteItem.setVideoPath("");
+
+            noteItem.setLabel(label);
+            noteItem.setText_content(textContent);
+            noteItem.setSubtitle(subtitle);
+            noteItem.setDate(mdate);
+            noteItem.setColor(selectedNoteColor);
+
+            databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+            Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent();
+            intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+            intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+            finish();
+        };
+
+        // Up hình và video
+        if ( (imageNote_update.getDrawable() != null && imageNote_update.getVisibility() != View.GONE ) && videoView_update.getVisibility() != View.GONE ){
+            // Up Uri hình lên firebase
             StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
 
             StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageUriUpdate));
+
             imageReference.putFile(imageUriUpdate).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
                     throw Objects.requireNonNull(task.getException());
@@ -545,16 +625,90 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                 if (task.isSuccessful()) {
                     imageUriTaskUpdate = task.getResult().toString();
                     noteItem.setImagePath(imageUriTaskUpdate);
+
+                    // Upload videoUri lên firebase
+                    StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+
+                    StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
+                            "." + getFileExtension(videoUriUpdate));
+
+                    videoReference.putFile(videoUriUpdate).continueWithTask(task1 -> {
+                        if (!task.isSuccessful()) {
+                            throw Objects.requireNonNull(task.getException());
+                        }
+
+                        return videoReference.getDownloadUrl();
+                    }).addOnCompleteListener(task1 -> {
+                        if (task.isSuccessful()) {
+                            videoUriTaskUpdate = task.getResult().toString();
+                            noteItem.setVideoPath(videoUriTaskUpdate);
+
+                            noteItem.setLabel(label);
+                            noteItem.setText_content(textContent);
+                            noteItem.setSubtitle(subtitle);
+                            noteItem.setDate(mdate);
+                            noteItem.setColor(selectedNoteColor);
+
+                            databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+                            Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent();
+                            intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                            intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                            finish();
+                        }
+                    });
                 }
             });
         }
 
-        if (videoView_update.getVisibility() == View.GONE) {
-            noteItem.setVideoPath("");
-        } else {
+
+        // Up hình không video
+        if ( (imageNote_update.getDrawable() != null && imageNote_update.getVisibility() != View.GONE ) && videoView_update.getVisibility() == View.GONE ){
+            StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
+
+            StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
+                    "." + getFileExtension(imageUriUpdate));
+
+            imageReference.putFile(imageUriUpdate).continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw Objects.requireNonNull(task.getException());
+                }
+
+                return imageReference.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    imageUriTaskUpdate = task.getResult().toString();
+                    noteItem.setImagePath(imageUriTaskUpdate);
+                    noteItem.setVideoPath("");
+
+                    noteItem.setLabel(label);
+                    noteItem.setText_content(textContent);
+                    noteItem.setSubtitle(subtitle);
+                    noteItem.setDate(mdate);
+                    noteItem.setColor(selectedNoteColor);
+
+                    databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+                    Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent();
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                    finish();
+                }
+            });
+        }
+
+        // Up video không up hình
+        if ( (imageNote_update.getDrawable() == null || imageNote_update.getVisibility() == View.GONE ) && videoView_update.getVisibility() != View.GONE ){
+            // Upload videoUri lên firebase
             StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
+
             StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(videoUriUpdate));
+
             videoReference.putFile(videoUriUpdate).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
                     throw Objects.requireNonNull(task.getException());
@@ -565,24 +719,25 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                 if (task.isSuccessful()) {
                     videoUriTaskUpdate = task.getResult().toString();
                     noteItem.setVideoPath(videoUriTaskUpdate);
+                    noteItem.setImagePath("");
+
+                    noteItem.setLabel(label);
+                    noteItem.setText_content(textContent);
+                    noteItem.setSubtitle(subtitle);
+                    noteItem.setDate(mdate);
+                    noteItem.setColor(selectedNoteColor);
+
+                    databaseReference.child(currentTimeStamp).setValue(noteItem);
+
+                    Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
+
+                    Intent intent = new Intent();
+                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                    finish();
                 }
             });
         }
-
-        noteItem.setLabel(label);
-        noteItem.setText_content(textContent);
-        noteItem.setSubtitle(subtitle);
-        noteItem.setDate(mdate);
-        noteItem.setColor(selectedNoteColor);
-
-        databaseReference.child(currentTimeStamp).setValue(noteItem);
-
-        Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
-
-        Intent intent = new Intent();
-        intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
-        intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
-        finish();
     }
 
     private String getFileExtension(Uri uri) {
@@ -706,6 +861,12 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             snapshot.getRef().child("passwordNote").setValue(passwordNoteValue);
                             Toast.makeText(UpdateActivity.this, "Set password successfully", Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent();
+                            intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                            intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                            intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.SET_PASSWORD);
+                            finish();
                         }
 
                         @Override
@@ -713,12 +874,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                             Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                         }
                     });
-
-                    Intent intent = new Intent();
-                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
-                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
-                    intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.SET_PASSWORD);
-                    finish();
                 })
                 .setNegativeButton("Cancel", (dialogInterface, i) -> {
                     dialogInterface.dismiss();
@@ -733,6 +888,13 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             snapshot.getRef().child("passwordNote").setValue("");
                             Toast.makeText(UpdateActivity.this, "Remove password successfully", Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent();
+                            intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
+                            intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
+                            intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.REMOVE_PASSWORD);
+
+                            finish();
                         }
 
                         @Override
@@ -740,13 +902,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                             Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                         }
                     });
-
-                    Intent intent = new Intent();
-                    intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
-                    intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
-                    intent.putExtra(UpdateActivity.KEY_SENDING_RESULT_CODE, UpdateActivity.REMOVE_PASSWORD);
-
-                    finish();
                 });
 
         AlertDialog dialog = builder.create();
