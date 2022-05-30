@@ -286,34 +286,4 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
         this.recyclerViewTrashBinNoteCustomAdapter.filter(noteItemList);
     }
 
-    // Receive result from edit or add activity
-    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>() {
-                @Override
-                public void onActivityResult(ActivityResult result) {
-                    if ( result.getResultCode() == RESULT_OK && result.getData() != null ){
-                        Intent intentData = result.getData();
-
-                        NoteItem new_notes = (NoteItem) intentData.getSerializableExtra(NoteActivity.KEY_SENDING_NOTE_ITEM);
-
-                        if ( new_notes != null ){
-                            int requestOperation = intentData.getIntExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, -1);
-
-                            switch (requestOperation){
-                                case NoteActivity.VALUE_REQUEST_DELETE_NOTE:
-                                    list_NoteItem.add(0, new_notes);
-                                    recyclerViewTrashBinNoteCustomAdapter.notifyItemInserted(0);
-//                                    ShowEmptyView()
-                                    break;
-                                default:
-                                    break;
-
-                            }
-                        }
-                    }
-                }
-            }
-    );
-
 }

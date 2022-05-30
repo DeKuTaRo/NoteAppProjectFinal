@@ -60,43 +60,14 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     protected void onResume() {
         super.onResume();
 
-        fontSizeItem = selectFontSize.getText().toString();
-        fontStyleItem = selectFontStyle.getText().toString();
-
-
-        this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Settings settings = snapshot.getValue(Settings.class);
-
-                if (settings != null) {
-                    fontSizeDB = settings.getFontSize();
-                    fontStyleDB = settings.getFontStyle();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize.setAdapter(arrayFontSizeAdapter);
 
         arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
         selectFontStyle.setAdapter(arrayFontStyleAdapter);
 
-        Settings settings = new Settings();
-
-        settings.setFontSize(fontSizeDB);
-
-
-        settings.setFontStyle(fontStyleDB);
-
-
-        fontSizeItem = selectFontSize.getText().toString();
-        fontStyleItem = selectFontStyle.getText().toString();
+        selectFontSize.setText(fontSizeDB);
+        selectFontStyle.setText(fontStyleDB);
 
     }
 
@@ -121,6 +92,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
 
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
+        rootNode = FirebaseDatabase.getInstance();
+        reference = rootNode.getReference("Users").child(userEmail).child("Settings");
+
         arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize.setAdapter(arrayFontSizeAdapter);
 
@@ -141,15 +117,28 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 fontStyleItem = parent.getItemAtPosition(position).toString();
                 Settings settings = new Settings(fontSizeItem, fontStyleItem);
-                reference.setValue(settings);            }
+                reference.setValue(settings);
+            }
         });
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
-        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
-        rootNode = FirebaseDatabase.getInstance();
-        reference = rootNode.getReference("Users").child(userEmail).child("Settings");
-
         reference.setValue(settings);
+
+        this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
+
+                if (settings != null) {
+                    fontSizeDB = settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         setValueFont();
 
