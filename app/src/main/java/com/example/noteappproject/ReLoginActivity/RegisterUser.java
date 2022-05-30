@@ -168,7 +168,7 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
                                     }
                                 });
                     } else {
-                        ShowToast("Failed to register ! Try again !", RegisterUser.this);
+                        ShowToast("Failed to register ! Email already exists ! Try again !", RegisterUser.this);
                         progressBar.setVisibility(View.GONE);
                     }
                 });

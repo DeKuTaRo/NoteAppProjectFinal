@@ -15,6 +15,12 @@
         />
 
     <item
+        android:id="@+id/Add_Remove_Label"
+        android:title="ADD/REMOVE LABEL"
+        android:icon="@drawable/ic_delete"
+        />
+
+    <item
         android:id="@+id/shareNote"
         android:title="SHARE NOTE"
         android:icon="@drawable/ic_delete"

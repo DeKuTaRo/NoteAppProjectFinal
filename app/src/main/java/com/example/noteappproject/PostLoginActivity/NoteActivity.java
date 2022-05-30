@@ -1,10 +1,12 @@
 package com.example.noteappproject.PostLoginActivity;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -43,10 +45,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,6 +81,8 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     // RecyclerView
     private List<NoteItem> list_NoteItem;
     private RecyclerViewNoteCustomAdapter recyclerViewNoteCustomAdapter;
+
+    private List<String> listLabel;
 
     @Override
     protected void onStart() {
@@ -212,6 +218,33 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        DatabaseReference databaseReferenceLabel = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("Label");
+
+        databaseReferenceLabel.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                listLabel = new ArrayList<>();
+                String labelListFormat =  (String) snapshot.getValue(String.class);
+                String[] availableLabel = NoteActivity.this.getResources().getStringArray(R.array.available_label);
+
+                if ( labelListFormat == null || labelListFormat.isEmpty()){
+                    listLabel = new ArrayList<String>(Arrays.asList(availableLabel));
+                    return;
+                }
+
+                String[] labelListFromDatabase = labelListFormat.split("\\|");
+                listLabel.addAll(new ArrayList<String>(Arrays.asList(availableLabel)));
+                listLabel.addAll(new ArrayList<String>(Arrays.asList(labelListFromDatabase)));
+
+                Log.e("TEST","LOAD LABEL HERE " + listLabel.toString());
             }
 
             @Override
@@ -439,6 +472,10 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 });
 
                 return true;
+
+            case R.id.Add_Remove_Label:
+                addRemoveLabel(selectedNote, selectedPosition);
+                return true;
             case R.id.shareNote:
                 Intent sendIntent = new Intent();
                 sendIntent.setAction(Intent.ACTION_SEND);
@@ -450,6 +487,138 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             default:
                 return false;
         }
+    }
+
+    private void addRemoveLabel(NoteItem selectedNote, int selectedPosition) {
+
+
+        if ( this.listLabel != null ){
+            // Lưu vị trí các Label đã check trước đó
+            final boolean[] checkedItems = new boolean[listLabel.size()];
+            // Mảng label đã check
+            final String[] checkedLabel = selectedNote.getLabel().split("\\|");
+
+            final List<String> selectedLabel = new ArrayList<>();
+
+            final String[] currentListLabel = new String[listLabel.size()];
+
+            int k = 0;
+            for (String label : listLabel){
+                currentListLabel[k] = label;
+                k++;
+            }
+
+            // Lặp để kiểm tra các các label đã chọn
+            if (checkedLabel.length != 0){
+                for ( int i = 1; i < checkedLabel.length ; i++ ){
+                    for ( int j = 0 ; j < this.listLabel.size() ; j++ ){
+                        if ( checkedLabel[i].equals(currentListLabel[j]) ){
+                            checkedItems[j] = true;
+                        }
+                    }
+                    selectedLabel.add(checkedLabel[i]);
+                }
+            }
+
+            // initialise the alert dialog builder
+            AlertDialog.Builder builder = new AlertDialog.Builder(NoteActivity.this);
+
+            // set the title for the alert dialog
+            builder.setTitle("Choose Note Label");
+
+            // set the icon for the alert dialog
+            builder.setIcon(R.drawable.ic_baseline_label_important_24);
+
+            // now this is the function which sets the alert dialog for multiple item selection ready
+            builder.setMultiChoiceItems(currentListLabel, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                    if (isChecked) {
+                        selectedLabel.add(currentListLabel[which]);
+                    } else {
+                        selectedLabel.remove(currentListLabel[which]);
+                    }
+                }
+            });
+
+            // alert dialog shouldn't be cancellable
+            builder.setCancelable(false);
+
+            // handle the positive button of the dialog
+            builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (checkedLabel.length == 0){
+                        StringBuilder baseLabel = new StringBuilder(selectedNote.getLabel());
+
+                        Log.e("TEST","SELECTED : " + Arrays.toString(selectedLabel.toArray()));
+
+                        for (String label : selectedLabel) {
+                            baseLabel.append("|" + label);
+                        };
+
+                        selectedNote.setLabel(baseLabel.toString());
+                    } else {
+                        StringBuilder baseLabel = new StringBuilder(checkedLabel[0]);
+
+                        for (String label : selectedLabel) {
+                            baseLabel.append("|" + label);
+                        };
+
+                        selectedNote.setLabel(baseLabel.toString());
+                    }
+
+                    recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
+
+                    long noteItemID = selectedNote.getCreated_at();
+
+                    databaseReference.child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            snapshot.getRef().child("label").setValue(selectedNote.getLabel());
+                            Toast.makeText(NoteActivity.this, "Change label successfully", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(NoteActivity.this, "Change label failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+
+            // handle the negative button of the alert dialog
+            builder.setNegativeButton("Later", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            // handle the neutral button of the dialog to clear
+            // the selected items boolean checkedItem
+            builder.setNeutralButton("Clear all", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    for (int i = 0; i < checkedItems.length; i++) {
+                        checkedItems[i] = false;
+                    }
+                }
+            });
+
+            // create the builder
+            builder.create();
+
+            // create the alert dialog with the
+            // alert dialog builder instance
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        } else {
+            Toast.makeText(NoteActivity.this, "Can't manage note label ! Please try again !", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 
     private void deleteNoteStorage(NoteItem noteItem) {
