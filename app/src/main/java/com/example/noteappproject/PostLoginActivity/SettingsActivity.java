@@ -47,17 +47,19 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     private Button changePassBtn, logoutBtn;
 
-    private String fontSizeItem, fontStyleItem;
-    private String fontSizeDB, fontStyleDB;
-    TextInputLayout layoutFontSize, layoutFontStyle;
-    AutoCompleteTextView selectFontSize, selectFontStyle;
+    private String fontSizeItem, fontStyleItem, timeDeleteItem;
+    private String fontSizeDB, fontStyleDB, timeDeleteDB;
+    TextInputLayout layoutFontSize, layoutFontStyle, layoutAddTimeDelete;
+    AutoCompleteTextView selectFontSize, selectFontStyle, selectTimeDelete;
 
     // Small : 10dp, Medium : 15dp, Big : 20dp, Very Big : 25dp
     String[] itemFontSize = {"Small", "Medium", "Big", "Very Big"};
 
     String[] itemFontStyle = {"Normal", "Bold", "Italic", "Underline"};
 
-    ArrayAdapter<String> arrayFontSizeAdapter, arrayFontStyleAdapter;
+    String[] itemTimeDelete = {"1", "2", "3", "4", "5", "6", "7"};
+
+    ArrayAdapter<String> arrayFontSizeAdapter, arrayFontStyleAdapter, arrayTimeDeleteAdapter;
 
     @Override
     protected void onResume() {
@@ -77,9 +79,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 if (settings != null) {
                     fontSizeDB = settings.getFontSize();
                     fontStyleDB = settings.getFontStyle();
+                    timeDeleteDB = settings.getTimeDelete();
                 }
                 selectFontSize.setText(fontSizeDB);
                 selectFontStyle.setText(fontStyleDB);
+                selectTimeDelete.setText(timeDeleteDB);
 
             }
 
@@ -106,12 +110,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         layoutFontSize = findViewById(R.id.layoutFontSize);
         layoutFontStyle = findViewById(R.id.layoutFontStyle);
+        layoutAddTimeDelete = findViewById(R.id.layoutAddTimeDelete);
 
         selectFontSize = findViewById(R.id.selectFontSize);
         selectFontStyle = findViewById(R.id.selectFontStyle);
-
-//        fontSizeItem = selectFontSize.getText().toString();
-//        fontStyleItem = selectFontStyle.getText().toString();
+        selectTimeDelete = findViewById(R.id.selectTimeDelete);
 
 
         final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
@@ -126,9 +129,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 if (settings != null) {
                     fontSizeDB = settings.getFontSize();
                     fontStyleDB = settings.getFontStyle();
+                    timeDeleteDB = settings.getTimeDelete();
                 }
                 selectFontSize.setText(fontSizeDB);
                 selectFontStyle.setText(fontStyleDB);
+                selectTimeDelete.setText(timeDeleteDB);
 
             }
 
@@ -155,6 +160,16 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 fontStyleItem = parent.getItemAtPosition(position).toString();
+            }
+        });
+
+        arrayTimeDeleteAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemTimeDelete);
+        selectTimeDelete.setAdapter(arrayTimeDeleteAdapter);
+
+        selectTimeDelete.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                timeDeleteItem = parent.getItemAtPosition(position).toString();
             }
         });
 
@@ -197,8 +212,9 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     private void saveSettingsData() {
         fontSizeItem = selectFontSize.getText().toString();
         fontStyleItem = selectFontStyle.getText().toString();
+        timeDeleteItem = selectTimeDelete.getText().toString();
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        Settings settings = new Settings(fontSizeItem, fontStyleItem, timeDeleteItem);
         reference.setValue(settings);
         Toast.makeText(this, "Settings were applied", Toast.LENGTH_SHORT).show();
     }

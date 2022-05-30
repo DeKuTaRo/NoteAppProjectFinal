@@ -49,6 +49,8 @@ public class NoteItem implements Serializable {
     @ColumnInfo(name = "created_at")
     long created_at;
 
+    @Ignore
+    String deleted_at;
 
 
     public NoteItem() {
@@ -200,6 +202,14 @@ public class NoteItem implements Serializable {
 
     public void setCreated_at(long created_at) {
         this.created_at = created_at;
+    }
+
+    public String getDeleted_at() {
+        return deleted_at;
+    }
+
+    public void setDeleted_at(String deleted_at) {
+        this.deleted_at = deleted_at;
     }
 
     @Override

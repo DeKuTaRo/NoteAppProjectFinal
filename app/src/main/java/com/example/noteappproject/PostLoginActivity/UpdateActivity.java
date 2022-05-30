@@ -261,7 +261,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             layoutDeleteVideo_update.setVisibility(View.VISIBLE);
             videoView_update.setVisibility(View.VISIBLE);
             videoView_update.setVideoURI(Uri.parse(noteItem.getVideoPath()));
-            //videoView_update.start();
+            videoView_update.start();
         }
     }
 
@@ -514,58 +514,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     @SuppressLint("ShowToast")
     public void updateData() {
-//        final String currentTimeStamp = String.valueOf(noteItem.getCreated_at());
-//
-//        label = label_update.getText().toString().trim();
-//        textContent = textContent_update.getText().toString().trim();
-//        subtitle = subtitle_update.getText().toString().trim();
-//        mdate = textDateTime_update.getText().toString().trim();
-//
-//        if (layoutWebURL_update.getVisibility() == View.VISIBLE) {
-//            noteItem.setWebLink(textWebURL_update.getText().toString());
-//        }
-//
-//        if (imageNote_update.getDrawable() == null || imageNote_update.getVisibility() == View.GONE) {
-//            noteItem.setImagePath("");
-//        } else {
-//            StorageReference storageImageReference = FirebaseStorage.getInstance().getReference("images");
-//
-//            StorageReference imageReference = storageImageReference.child(System.currentTimeMillis() +
-//                    "." + getFileExtension(imageUriUpdate));
-//            imageReference.putFile(imageUriUpdate).continueWithTask(task -> {
-//                if (!task.isSuccessful()) {
-//                    throw Objects.requireNonNull(task.getException());
-//                }
-//
-//                return imageReference.getDownloadUrl();
-//            }).addOnCompleteListener(task -> {
-//                if (task.isSuccessful()) {
-//                    imageUriTaskUpdate = task.getResult().toString();
-//                    noteItem.setImagePath(imageUriTaskUpdate);
-//                }
-//            });
-//        }
-//
-//        if (videoView_update.getVisibility() == View.GONE) {
-//            noteItem.setVideoPath("");
-//        } else {
-//            StorageReference storageVideoReference = FirebaseStorage.getInstance().getReference("videos");
-//            StorageReference videoReference = storageVideoReference.child(System.currentTimeMillis() +
-//                    "." + getFileExtension(videoUriUpdate));
-//            videoReference.putFile(videoUriUpdate).continueWithTask(task -> {
-//                if (!task.isSuccessful()) {
-//                    throw Objects.requireNonNull(task.getException());
-//                }
-//
-//                return videoReference.getDownloadUrl();
-//            }).addOnCompleteListener(task -> {
-//                if (task.isSuccessful()) {
-//                    videoUriTaskUpdate = task.getResult().toString();
-//                    noteItem.setVideoPath(videoUriTaskUpdate);
-//                }
-//            });
-//        }
-
         final String currentTimeStamp = String.valueOf(noteItem.getCreated_at());
 
         label = label_update.getText().toString().trim();

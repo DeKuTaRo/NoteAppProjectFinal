@@ -16,6 +16,8 @@ import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityGridViewItemNoteItemBinding;
 import com.example.noteappproject.databinding.ActivityListViewItemNoteItemBinding;
+import com.example.noteappproject.databinding.ActivityTrashBinGridViewItemNoteItemBinding;
+import com.example.noteappproject.databinding.ActivityTrashBinListViewItemNoteItemBinding;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -47,17 +49,17 @@ public class RecyclerViewTrashBinNoteCustomAdapter extends RecyclerView.Adapter<
     @Override
     public RecyclerViewTrashBinNoteCustomAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (this.type == RecyclerViewNoteCustomAdapter.TYPE_LIST_VIEW ){
-            ActivityListViewItemNoteItemBinding viewRoot = ActivityListViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            ActivityTrashBinListViewItemNoteItemBinding viewRoot = ActivityTrashBinListViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new RecyclerViewTrashBinNoteCustomAdapter.ViewHolder(viewRoot);
         }
 
         if ( this.type == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW ){
-            ActivityGridViewItemNoteItemBinding viewRoot = ActivityGridViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            ActivityTrashBinGridViewItemNoteItemBinding viewRoot = ActivityTrashBinGridViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new RecyclerViewTrashBinNoteCustomAdapter.ViewHolder(viewRoot);
         }
 
         // Base case
-        ActivityListViewItemNoteItemBinding viewRoot = ActivityListViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        ActivityTrashBinListViewItemNoteItemBinding viewRoot = ActivityTrashBinListViewItemNoteItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new RecyclerViewTrashBinNoteCustomAdapter.ViewHolder(viewRoot);
     }
 
@@ -73,15 +75,15 @@ public class RecyclerViewTrashBinNoteCustomAdapter extends RecyclerView.Adapter<
 
     protected class ViewHolder extends RecyclerView.ViewHolder {
 
-        private ActivityListViewItemNoteItemBinding binding_List_View;
-        private ActivityGridViewItemNoteItemBinding binding_Grid_View;
+        private ActivityTrashBinListViewItemNoteItemBinding binding_List_View;
+        private ActivityTrashBinGridViewItemNoteItemBinding binding_Grid_View;
 
-        public ViewHolder(@NonNull ActivityListViewItemNoteItemBinding itemView) {
+        public ViewHolder(@NonNull ActivityTrashBinListViewItemNoteItemBinding itemView) {
             super(itemView.getRoot());
             this.binding_List_View = itemView;
         }
 
-        public ViewHolder(@NonNull ActivityGridViewItemNoteItemBinding itemView) {
+        public ViewHolder(@NonNull ActivityTrashBinGridViewItemNoteItemBinding itemView) {
             super(itemView.getRoot());
             this.binding_Grid_View = itemView;
         }
@@ -114,7 +116,7 @@ public class RecyclerViewTrashBinNoteCustomAdapter extends RecyclerView.Adapter<
 
                 this.binding_List_View.label.setText("Note label: " + noteItem.getLabel());
                 this.binding_List_View.textContent.setText("Note content: " + noteItem.getText_content());
-                this.binding_List_View.timeCreate.setText("Created at: " + noteItem.getDate());
+                this.binding_List_View.timeDelete.setText("Deleted at: " + noteItem.getDeleted_at());
 
 
                 this.binding_List_View.mainCardView.setOnLongClickListener(view -> {
@@ -166,7 +168,7 @@ public class RecyclerViewTrashBinNoteCustomAdapter extends RecyclerView.Adapter<
 
 
                 this.binding_Grid_View.label.setText("Note label: " + noteItem.getLabel());
-                this.binding_Grid_View.timeCreate.setText("Created at: " + noteItem.getDate());
+                this.binding_Grid_View.timeDelete.setText("Deleted at: " + noteItem.getDeleted_at());
 
 
                 this.binding_Grid_View.mainCardView.setOnLongClickListener(view -> {

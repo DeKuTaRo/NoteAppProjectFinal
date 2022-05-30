@@ -394,7 +394,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                             noteItem.setCreated_at(created_at);
 
                             final String currentTimeStamp = String.valueOf(created_at);
-                            databaseReference.child(currentTimeStamp).setValue(noteItem);
+                            databaseReference.child("NoteItems").child(currentTimeStamp).setValue(noteItem);
 
                             RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
                             Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
@@ -442,7 +442,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                     noteItem.setCreated_at(created_at);
 
                     final String currentTimeStamp = String.valueOf(created_at);
-                    databaseReference.child(currentTimeStamp).setValue(noteItem);
+                    databaseReference.child("NoteItems").child(currentTimeStamp).setValue(noteItem);
 
                     RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
                     Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
@@ -488,7 +488,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                     noteItem.setCreated_at(created_at);
 
                     final String currentTimeStamp = String.valueOf(created_at);
-                    databaseReference.child(currentTimeStamp).setValue(noteItem);
+                    databaseReference.child("NoteItems").child(currentTimeStamp).setValue(noteItem);
 
                     RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
                     Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();

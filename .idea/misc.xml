@@ -43,10 +43,13 @@
         <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/menu/my_menu_profile.xml" value="0.24895833333333334" />
         <entry key="..\:/Mobile/LastTerm/Both/exe1/app/src/main/res/menu/my_menu_update_note.xml" value="0.24635416666666668" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_add_note.xml" value="0.21014492753623187" />
+        <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_grid_view_item_note_item.xml" value="0.25" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_list_view_item_note_item.xml" value="0.11666666666666667" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_note.xml" value="0.25" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_settings.xml" value="0.264" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_trash_bin.xml" value="0.25" />
+        <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_trash_bin_grid_view_item_note_item.xml" value="0.25" />
+        <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_trash_bin_list_view_item_note_item.xml" value="0.24895833333333334" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/layout/activity_update.xml" value="0.12158054711246201" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/menu/my_menu.xml" value="0.19814814814814816" />
         <entry key="..\:/Mobile/LastTerm/Both1/NoteAppProjectFinal/app/src/main/res/menu/my_menu_item_click.xml" value="0.25" />

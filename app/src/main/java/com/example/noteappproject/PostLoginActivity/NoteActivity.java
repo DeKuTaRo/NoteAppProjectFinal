@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.noteappproject.AdvancedFunction.TrashBinActivity;
 import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
@@ -49,8 +50,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -165,9 +168,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         userEmail = StringUlti.getSubEmailName(userEmail);
 
-        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
+        this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail);
 
-        this.databaseReference.addChildEventListener(new ChildEventListener() {
+        this.databaseReference.child("NoteItems").addChildEventListener(new ChildEventListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
@@ -279,6 +282,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 Intent intent = new Intent(NoteActivity.this, AddNoteActivity.class);
                 intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
                 activityResultLauncher.launch(intent);
+            }
+        });
+
+        this.binding.imageTrashBin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(NoteActivity.this, TrashBinActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -465,11 +476,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 RoomDB.getInstance(this).noteDAO().deleteByCreatedAt(selectedNote.getCreated_at());
 
                 this.list_NoteItem.remove(selectedNote);
-                this.databaseReference.child(String.valueOf(selectedNote.getCreated_at())).removeValue().addOnCompleteListener(task -> {
-                    if (task.isSuccessful()){
-                        recyclerViewNoteCustomAdapter.notifyDataSetChanged();
-                    };
-                });
+                this.databaseReference.child("NoteItems").child(String.valueOf(selectedNote.getCreated_at())).removeValue();
+
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd/MM/yyyy HH:mm a");
+                Date date = new Date();
+                selectedNote.setDeleted_at(formatter.format(date));
+
+                this.databaseReference.child("NoteItemsTrashBin").child(String.valueOf(selectedNote.getCreated_at())).setValue(selectedNote);
+                recyclerViewNoteCustomAdapter.notifyDataSetChanged();
 
                 return true;
 
@@ -573,7 +587,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
                     long noteItemID = selectedNote.getCreated_at();
 
-                    databaseReference.child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
+                    databaseReference.child("NoteItems").child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             snapshot.getRef().child("label").setValue(selectedNote.getLabel());
@@ -630,12 +644,12 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
         if (noteItem.getImagePath() != null && !noteItem.getImagePath().trim().isEmpty()) {
             StorageReference imageReference = storage.getReferenceFromUrl(noteItem.getImagePath());
-            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
+            imageReference.delete().addOnSuccessListener(unused -> databaseReference.child("NoteItems").child(noteID).removeValue());
         }
 
         if (noteItem.getVideoPath() != null && !noteItem.getVideoPath().trim().isEmpty()) {
             StorageReference videoReference = storage.getReferenceFromUrl(noteItem.getVideoPath());
-            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child(noteID).removeValue());
+            videoReference.delete().addOnSuccessListener(unused -> databaseReference.child("NoteItems").child(noteID).removeValue());
 
         }
 

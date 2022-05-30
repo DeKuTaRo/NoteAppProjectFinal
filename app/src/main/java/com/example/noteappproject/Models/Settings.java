@@ -1,7 +1,7 @@
 package com.example.noteappproject.Models;
 
 public class Settings {
-    private String fontSize, fontStyle;
+    private String fontSize, fontStyle, timeDelete;
 
     public Settings() {
 
@@ -12,9 +12,10 @@ public class Settings {
     }
 
 
-    public Settings(String fontSize, String fontStyle) {
+    public Settings(String fontSize, String fontStyle, String timeDelete) {
         this.fontSize = fontSize;
         this.fontStyle = fontStyle;
+        this.timeDelete = timeDelete;
     }
 
     public String getFontSize() {
@@ -31,5 +32,13 @@ public class Settings {
 
     public void setFontStyle(String fontStyle) {
         this.fontStyle = fontStyle;
+    }
+
+    public String getTimeDelete() {
+        return timeDelete;
+    }
+
+    public void setTimeDelete(String timeDelete) {
+        this.timeDelete = timeDelete;
     }
 }

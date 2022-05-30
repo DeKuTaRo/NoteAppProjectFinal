@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.CustomAdapter.RecyclerViewTrashBinNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
+import com.example.noteappproject.Models.Settings;
 import com.example.noteappproject.PostLoginActivity.LabelManagerActivity;
 import com.example.noteappproject.PostLoginActivity.NoteActivity;
 import com.example.noteappproject.PostLoginActivity.ProfileActivity;
@@ -41,6 +42,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +58,7 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
     private int selectedPosition;
 
     private FirebaseAuth mAuth;
-    private String userEmail;
+    private String userEmail, timeDeleteDB;
     private DatabaseReference databaseReference;
 
 
@@ -69,9 +71,34 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
 
         InitializeNoteRecyclerView();
         DatabaseSetup();
+        SetupMessageView();
         SetUpNoteRecyclerView();
         SearchViewInputText();
     }
+
+
+    private void InitializeNoteRecyclerView() {
+        this.list_NoteItem = new ArrayList<>();
+
+        this.recyclerViewTrashBinNoteCustomAdapter = new RecyclerViewTrashBinNoteCustomAdapter(this, this.list_NoteItem, new RecyclerViewTrashBinNoteCustomAdapter.IItemClick() {
+
+            @Override
+            public void onLongClick(NoteItem noteItem, CardView cardView, int position) {
+                selectedNote = noteItem;
+                selectedPosition = position;
+                showPopUp(cardView);
+            }
+        });
+
+    }
+
+    private void showPopUp(CardView cardView) {
+        PopupMenu popupMenu = new PopupMenu(this, cardView);
+        popupMenu.inflate(R.menu.my_menu_item_trash_bin);
+        popupMenu.setOnMenuItemClickListener(this);
+        popupMenu.show();
+    }
+
 
     private void DatabaseSetup() {
         mAuth = FirebaseAuth.getInstance();
@@ -154,28 +181,32 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
         });
     }
 
+    private void SetupMessageView() {
+        this.databaseReference.child("Settings").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
 
-    private void InitializeNoteRecyclerView() {
-        this.list_NoteItem = new ArrayList<>();
+                if (settings != null) {
+                    timeDeleteDB = settings.getTimeDelete();
+                }
 
-        this.recyclerViewTrashBinNoteCustomAdapter = new RecyclerViewTrashBinNoteCustomAdapter(this, this.list_NoteItem, new RecyclerViewTrashBinNoteCustomAdapter.IItemClick() {
+                if (timeDeleteDB.equals("1")) {
+                    binding.messageDelete.setText("Note will delete permanently after " + timeDeleteDB + " day when it was deleted");
+                } else {
+                    binding.messageDelete.setText("Note will delete permanently after " + timeDeleteDB + " days when it was deleted");
+                }
+
+            }
 
             @Override
-            public void onLongClick(NoteItem noteItem, CardView cardView, int position) {
-                selectedNote = noteItem;
-                selectedPosition = position;
-                showPopUp(cardView);
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(TrashBinActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
-    private void showPopUp(CardView cardView) {
-        PopupMenu popupMenu = new PopupMenu(this, cardView);
-        popupMenu.inflate(R.menu.my_menu_item_trash_bin);
-        popupMenu.setOnMenuItemClickListener(this);
-        popupMenu.show();
-    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
