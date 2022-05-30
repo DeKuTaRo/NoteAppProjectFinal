@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.example.noteappproject.AdvancedFunction.TrashBinActivity;
 import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
@@ -88,9 +89,24 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     private List<String> listLabel;
 
+
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        this.binding = ActivityNoteBinding.inflate(getLayoutInflater());
+        View viewRoot = this.binding.getRoot();
+        setContentView(viewRoot);
+
+        AuthenticationSetup();
+        InitializeNoteRecyclerView();
+        DatabaseSetup();
+        SetOnClickEvent();
+        SetUpNoteRecyclerView();
+        SearchViewInputText();
+        ShowEmptyView();
+    }
+
+    private void AuthenticationSetup() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if ( user == null ){
             // Chưa đăng nhập không cho dùng
@@ -126,21 +142,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         if (user != null) {
             this.isActivated = user.isEmailVerified();
         }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        this.binding = ActivityNoteBinding.inflate(getLayoutInflater());
-        View viewRoot = this.binding.getRoot();
-        setContentView(viewRoot);
-
-        InitializeNoteRecyclerView();
-        DatabaseSetup();
-        SetOnClickEvent();
-        SetUpNoteRecyclerView();
-        SearchViewInputText();
-        ShowEmptyView();
     }
 
     private void ShowEmptyView(){
@@ -219,16 +220,16 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
-//                for (int i = 0; i < list_NoteItem.size(); i++) {
-//                    if (noteItem.getCreated_at() == list_NoteItem.get(i).getCreated_at() ) {
-//                        list_NoteItem.set(i, noteItem);
-//                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
-//                        break;
-//                    }
-//                }
+                for (int i = 0; i < list_NoteItem.size(); i++) {
+                    if (noteItem.getCreated_at() == list_NoteItem.get(i).getCreated_at() ) {
+                        list_NoteItem.set(i, noteItem);
+                        recyclerViewNoteCustomAdapter.notifyItemChanged(i);
+                        break;
+                    }
+                }
 
-                list_NoteItem.set(selectedPosition, noteItem);
-                recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
+//                list_NoteItem.set(selectedPosition, noteItem);
+//                recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
                 sortPinned();
             }
 
@@ -737,7 +738,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private void SwitchLayout(MenuItem item) {
         if ( this.recyclerViewNoteCustomAdapter.getType() == RecyclerViewNoteCustomAdapter.TYPE_LIST_VIEW ){
             this.recyclerViewNoteCustomAdapter.setType(RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW);
-            item.setIcon(R.drawable.ic_baseline_grid_off_24);
+            item.setIcon(R.drawable.ic_baseline_grid_on_24);
 
             GridLayoutManager gridLayoutManager = new GridLayoutManager(NoteActivity.this, 2);
             this.binding.recycleView.setLayoutManager(gridLayoutManager);
@@ -746,8 +747,19 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         }
 
         if ( this.recyclerViewNoteCustomAdapter.getType() == RecyclerViewNoteCustomAdapter.TYPE_GRID_VIEW ){
+            this.recyclerViewNoteCustomAdapter.setType(RecyclerViewNoteCustomAdapter.TYPE_STAGGED_VIEW);
+            item.setIcon(R.drawable.ic_baseline_grid_off_24);
+
+            RecyclerView.LayoutManager layoutManager = new StaggeredGridLayoutManager(2, LinearLayout.VERTICAL);
+            this.binding.recycleView.setLayoutManager(layoutManager);
+            this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
+            return;
+
+        }
+
+        if ( this.recyclerViewNoteCustomAdapter.getType() == RecyclerViewNoteCustomAdapter.TYPE_STAGGED_VIEW ){
             this.recyclerViewNoteCustomAdapter.setType(RecyclerViewNoteCustomAdapter.TYPE_LIST_VIEW);
-            item.setIcon(R.drawable.ic_baseline_grid_on_24);
+            item.setIcon(R.drawable.ic_list_view);
 
             RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(NoteActivity.this, LinearLayoutManager.VERTICAL,false);
             this.binding.recycleView.setLayoutManager(layoutManager);

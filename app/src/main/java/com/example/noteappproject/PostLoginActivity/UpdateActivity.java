@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -528,8 +529,6 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             return;
         }
 
-        NoteItem noteItem = new NoteItem();
-
         // Nếu có thêm web URL
         if (layoutWebURL_update.getVisibility() == View.VISIBLE) {
             noteItem.setWebLink(textWebURL_update.getText().toString());
@@ -548,6 +547,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
             databaseReference.child(currentTimeStamp).setValue(noteItem);
 
+            Log.e("TEST", "UPDATE1: "+ noteItem.toString());
             Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
 
             Intent intent = new Intent();
@@ -599,6 +599,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                             noteItem.setColor(selectedNoteColor);
 
                             databaseReference.child(currentTimeStamp).setValue(noteItem);
+                            Log.e("TEST", "UPDATE2: "+ noteItem.toString());
 
                             Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
 
@@ -639,6 +640,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                     noteItem.setColor(selectedNoteColor);
 
                     databaseReference.child(currentTimeStamp).setValue(noteItem);
+                    Log.e("TEST", "UPDATE 3: "+ noteItem.toString());
 
                     Toast.makeText(UpdateActivity.this, "Update successfully", Toast.LENGTH_SHORT).show();
 
@@ -675,6 +677,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                     noteItem.setSubtitle(subtitle);
                     noteItem.setDate(mdate);
                     noteItem.setColor(selectedNoteColor);
+
+                    Log.e("TEST", "UPDATE4: "+ noteItem.toString());
 
                     databaseReference.child(currentTimeStamp).setValue(noteItem);
 
