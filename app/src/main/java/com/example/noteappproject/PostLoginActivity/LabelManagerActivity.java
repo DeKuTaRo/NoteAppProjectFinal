@@ -92,15 +92,19 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
                         return;
                     }
 
-                    if (!task.getResult().getValue().toString().equals("")) {
+                    String labelFromDatabase = task.getResult().getValue(String.class);
+
+                    if ( labelFromDatabase != null && !labelFromDatabase.equals("")) {
                         String labelListFormat = Objects.requireNonNull(task.getResult().getValue()).toString();
                         String[] labelList = labelListFormat.split("\\|");
                         for (String label : labelList){
                             noteLabelList.add(new NoteLabel(label));
                         }
+
+                        recyclerViewLabelCustomAdapter.notifyDataSetChanged();
+                        ShowEmptyView();
                     }
-                    recyclerViewLabelCustomAdapter.notifyDataSetChanged();
-                    ShowEmptyView();
+
                 });
     }
 
@@ -325,12 +329,16 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
         alertDialog_Builder.setTitle("Confirm Remove All !");
         alertDialog_Builder.setMessage("Are you sure you want to remove all label !");
         alertDialog_Builder.setPositiveButton("Yes", (dialogInterface, i) -> {
-            this.noteLabelList.clear();
-            this.recyclerViewLabelCustomAdapter.notifyDataSetChanged();
-            ShowEmptyView();
-            Toast.makeText(LabelManagerActivity.this,"Remove all note label successfully !", Toast.LENGTH_SHORT).show();
+           if ( this.noteLabelList.size() == 0 ){
+               Toast.makeText(LabelManagerActivity.this,"There is no label ! Can't remove all !", Toast.LENGTH_SHORT).show();
+           } else {
+               this.noteLabelList.clear();
+               this.recyclerViewLabelCustomAdapter.notifyDataSetChanged();
+               ShowEmptyView();
+               Toast.makeText(LabelManagerActivity.this,"Remove all note label successfully !", Toast.LENGTH_SHORT).show();
 
-            saveToFirebase();
+               saveToFirebase();
+           }
         });
 
         alertDialog_Builder.setNegativeButton("No", null);
