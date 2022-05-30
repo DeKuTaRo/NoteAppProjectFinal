@@ -1,7 +1,7 @@
 package com.example.noteappproject.PostLoginActivity;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
@@ -50,9 +50,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.sql.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -72,8 +75,6 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
     private ActivityNoteBinding binding;
     private DatabaseReference databaseReference;
-    private FirebaseStorage storage;
-    private FirebaseAuth mAuth;
 
     // Lưu trạng thái của item được long click
     private NoteItem selectedNote;
@@ -93,12 +94,38 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if ( user == null ){
             // Chưa đăng nhập không cho dùng
-            finish();
+
+            // Create the object of
+            // AlertDialog Builder class
+            AlertDialog.Builder builder = new AlertDialog.Builder(NoteActivity.this);
+            // Set Alert Title
+            builder.setTitle("Authentication Error !");
+            // Set the message show for the Alert time
+            builder.setMessage("You need to login first ? Please close this app completely and open again !");
+            // Set Cancelable false
+            // for when the user clicks on the outside
+            // the Dialog Box then it will remain show
+            builder.setCancelable(false);
+
+            // Set the positive button with yes name
+            // OnClickListener method is use of
+            // DialogInterface interface.
+            builder.setPositiveButton( "Yes", (dialog, which) -> {
+                // When the user click yes button
+                // then app will close
+                finish();
+            });
+
+            // Create the Alert dialog
+            AlertDialog alertDialog = builder.create();
+
+            // Show the Alert Dialog box
+            alertDialog.show();
         }
 
-        // Check xem kích hoạt chưa
-        assert user != null;
-        this.isActivated = user.isEmailVerified();
+        if (user != null) {
+            this.isActivated = user.isEmailVerified();
+        }
     }
 
     @Override
@@ -156,7 +183,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     }
 
     private void DatabaseSetup() {
-        mAuth = FirebaseAuth.getInstance();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
         if (mAuth.getCurrentUser() != null) {
             userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
@@ -178,8 +205,10 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 if (noteItem != null) {
                     list_NoteItem.add(0, noteItem);
                     recyclerViewNoteCustomAdapter.notifyItemInserted(0);
+                    binding.recycleView.scrollToPosition(0);
                 }
                 ShowEmptyView();
+                sortPinned();
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -200,6 +229,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
 
                 list_NoteItem.set(selectedPosition, noteItem);
                 recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
+                sortPinned();
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -235,17 +265,17 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 listLabel = new ArrayList<>();
-                String labelListFormat =  (String) snapshot.getValue(String.class);
+                String labelListFormat = snapshot.getValue(String.class);
                 String[] availableLabel = NoteActivity.this.getResources().getStringArray(R.array.available_label);
 
                 if ( labelListFormat == null || labelListFormat.isEmpty()){
-                    listLabel = new ArrayList<String>(Arrays.asList(availableLabel));
+                    listLabel = new ArrayList<>(Arrays.asList(availableLabel));
                     return;
                 }
 
                 String[] labelListFromDatabase = labelListFormat.split("\\|");
-                listLabel.addAll(new ArrayList<String>(Arrays.asList(availableLabel)));
-                listLabel.addAll(new ArrayList<String>(Arrays.asList(labelListFromDatabase)));
+                listLabel.addAll(new ArrayList<>(Arrays.asList(availableLabel)));
+                listLabel.addAll(new ArrayList<>(Arrays.asList(labelListFromDatabase)));
 
                 Log.e("TEST","LOAD LABEL HERE " + listLabel.toString());
             }
@@ -285,12 +315,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             }
         });
 
-        this.binding.imageTrashBin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(NoteActivity.this, TrashBinActivity.class);
-                startActivity(intent);
-            }
+        this.binding.imageTrashBin.setOnClickListener(v -> {
+            Intent intent = new Intent(NoteActivity.this, TrashBinActivity.class);
+            startActivity(intent);
         });
 
     }
@@ -338,13 +365,16 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
-                    if ( result.getResultCode() == RESULT_OK && result.getData() != null ){
+                    if ( result.getResultCode() == Activity.RESULT_OK && result.getData() != null ){
                         Intent intentData = result.getData();
 
                         NoteItem new_notes = (NoteItem) intentData.getSerializableExtra(NoteActivity.KEY_SENDING_NOTE_ITEM);
 
+                        Log.e("TEST", "Result: " + new_notes.toString());
                         if ( new_notes != null ){
                             int requestOperation = intentData.getIntExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, -1);
+
+                            Log.e("TEST", "requestOperation: " + requestOperation);
 
                             switch (requestOperation){
                                 case NoteActivity.VALUE_REQUEST_ADD_NOTE:
@@ -362,12 +392,13 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                             }
                         }
                     } else {
-
+                        //Toast.makeText(NoteActivity.this, "Error: Can't receive result !", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
     );
 
+    @SuppressLint("NotifyDataSetChanged")
     private void updateNote(NoteItem new_notes, int resultCode) {
         if (resultCode == -1){
             RoomDB.getInstance(this)
@@ -456,20 +487,14 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
         switch (menuItem.getItemId()) {
             case R.id.pin :
                 selectedNote.setPinned(!selectedNote.isPinned());
+                selectedNote.setPin_at(new Date().getTime());
+
                 RoomDB.getInstance(this).noteDAO().pin(selectedNote.getID(), selectedNote.isPinned());
+
                 Toast.makeText(NoteActivity.this, selectedNote.isPinned() ? "Pinned" : "Unpinned", Toast.LENGTH_SHORT).show();
 
-                int i = 0;
-                for (NoteItem noteItem : this.list_NoteItem) {
-                    if (noteItem.getCreated_at() == selectedNote.getCreated_at()) {
-                        this.recyclerViewNoteCustomAdapter.notifyItemChanged(i);
-                        break;
-                    }
-                    i++;
-                }
-
+                this.databaseReference.child("NoteItems").child(String.valueOf(selectedNote.getCreated_at())).setValue(selectedNote);
                 return true;
-
             case R.id.delete:
                 deleteNoteStorage(selectedNote);
 
@@ -478,11 +503,9 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
                 this.list_NoteItem.remove(selectedNote);
                 this.databaseReference.child("NoteItems").child(String.valueOf(selectedNote.getCreated_at())).removeValue();
 
-                @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd/MM/yyyy HH:mm a");
-                Date date = new Date();
-                selectedNote.setDeleted_at(formatter.format(date));
 
-                this.databaseReference.child("NoteItemsTrashBin").child(String.valueOf(selectedNote.getCreated_at())).setValue(selectedNote);
+                selectedNote.setDeleted_at(String.valueOf(new Date().getTime()));
+                this.databaseReference.child("NoteItemsTrashBin").child(String.valueOf(selectedNote.getDeleted_at())).setValue(selectedNote);
                 recyclerViewNoteCustomAdapter.notifyDataSetChanged();
 
                 return true;
@@ -501,6 +524,46 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             default:
                 return false;
         }
+    }
+
+    private void sortPinned() {
+        List<NoteItem> pinned = new ArrayList<>();
+        List<NoteItem> unpinned = new ArrayList<>();
+
+        for(NoteItem noteItem: this.list_NoteItem){
+            if (noteItem.isPinned()) {
+                pinned.add(noteItem);
+            } else {
+                unpinned.add(noteItem);
+            }
+        }
+
+        Collections.sort(pinned, new Comparator<NoteItem>() {
+            @Override
+            public int compare(NoteItem noteItem1, NoteItem noteItem2) {
+                if ( noteItem1.getPin_at() >= noteItem2.getPin_at() ){
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        });
+
+        Collections.sort(unpinned, new Comparator<NoteItem>() {
+            @Override
+            public int compare(NoteItem noteItem1, NoteItem noteItem2) {
+                if ( noteItem1.getCreated_at() >= noteItem2.getCreated_at() ){
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        });
+
+        this.list_NoteItem.clear();
+        this.list_NoteItem.addAll(pinned);
+        this.list_NoteItem.addAll(unpinned);
+        this.recyclerViewNoteCustomAdapter.notifyDataSetChanged();
     }
 
     private void addRemoveLabel(NoteItem selectedNote, int selectedPosition) {
@@ -544,14 +607,11 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             builder.setIcon(R.drawable.ic_baseline_label_important_24);
 
             // now this is the function which sets the alert dialog for multiple item selection ready
-            builder.setMultiChoiceItems(currentListLabel, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                    if (isChecked) {
-                        selectedLabel.add(currentListLabel[which]);
-                    } else {
-                        selectedLabel.remove(currentListLabel[which]);
-                    }
+            builder.setMultiChoiceItems(currentListLabel, checkedItems, (dialog, which, isChecked) -> {
+                if (isChecked) {
+                    selectedLabel.add(currentListLabel[which]);
+                } else {
+                    selectedLabel.remove(currentListLabel[which]);
                 }
             });
 
@@ -559,67 +619,51 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
             builder.setCancelable(false);
 
             // handle the positive button of the dialog
-            builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                @SuppressLint("SetTextI18n")
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (checkedLabel.length == 0){
-                        StringBuilder baseLabel = new StringBuilder(selectedNote.getLabel());
+            builder.setPositiveButton("Save", (dialog, which) -> {
+                if (checkedLabel.length == 0){
+                    StringBuilder baseLabel = new StringBuilder(selectedNote.getLabel());
 
-                        Log.e("TEST","SELECTED : " + Arrays.toString(selectedLabel.toArray()));
+                    Log.e("TEST","SELECTED : " + Arrays.toString(selectedLabel.toArray()));
 
-                        for (String label : selectedLabel) {
-                            baseLabel.append("|" + label);
-                        };
-
-                        selectedNote.setLabel(baseLabel.toString());
-                    } else {
-                        StringBuilder baseLabel = new StringBuilder(checkedLabel[0]);
-
-                        for (String label : selectedLabel) {
-                            baseLabel.append("|" + label);
-                        };
-
-                        selectedNote.setLabel(baseLabel.toString());
+                    for (String label : selectedLabel) {
+                        baseLabel.append("|").append(label);
                     }
 
-                    recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
+                    selectedNote.setLabel(baseLabel.toString());
+                } else {
+                    StringBuilder baseLabel = new StringBuilder(checkedLabel[0]);
 
-                    long noteItemID = selectedNote.getCreated_at();
+                    for (String label : selectedLabel) {
+                        baseLabel.append("|").append(label);
+                    }
 
-                    databaseReference.child("NoteItems").child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            snapshot.getRef().child("label").setValue(selectedNote.getLabel());
-                            Toast.makeText(NoteActivity.this, "Change label successfully", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(NoteActivity.this, "Change label failed", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    selectedNote.setLabel(baseLabel.toString());
                 }
+
+                recyclerViewNoteCustomAdapter.notifyItemChanged(selectedPosition);
+
+                long noteItemID = selectedNote.getCreated_at();
+
+                databaseReference.child("NoteItems").child(String.valueOf(noteItemID)).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        snapshot.getRef().child("label").setValue(selectedNote.getLabel());
+                        Toast.makeText(NoteActivity.this, "Change label successfully", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(NoteActivity.this, "Change label failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
 
             // handle the negative button of the alert dialog
-            builder.setNegativeButton("Later", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
+            builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
 
             // handle the neutral button of the dialog to clear
             // the selected items boolean checkedItem
-            builder.setNeutralButton("Clear all", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    for (int i = 0; i < checkedItems.length; i++) {
-                        checkedItems[i] = false;
-                    }
-                }
-            });
+            builder.setNeutralButton("Clear all", (dialog, which) -> Arrays.fill(checkedItems, false));
 
             // create the builder
             builder.create();
@@ -638,7 +682,7 @@ public class NoteActivity extends AppCompatActivity implements PopupMenu.OnMenuI
     private void deleteNoteStorage(NoteItem noteItem) {
         String noteID = String.valueOf(noteItem.getCreated_at());
 
-        storage = FirebaseStorage.getInstance();
+        FirebaseStorage storage = FirebaseStorage.getInstance();
 
         // Maybe delete by ID then all relevant stuff is deleted too ???
 

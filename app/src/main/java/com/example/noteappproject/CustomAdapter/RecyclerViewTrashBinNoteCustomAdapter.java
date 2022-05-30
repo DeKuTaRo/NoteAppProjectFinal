@@ -14,8 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.R;
-import com.example.noteappproject.databinding.ActivityGridViewItemNoteItemBinding;
-import com.example.noteappproject.databinding.ActivityListViewItemNoteItemBinding;
 import com.example.noteappproject.databinding.ActivityTrashBinGridViewItemNoteItemBinding;
 import com.example.noteappproject.databinding.ActivityTrashBinListViewItemNoteItemBinding;
 import com.squareup.picasso.Picasso;

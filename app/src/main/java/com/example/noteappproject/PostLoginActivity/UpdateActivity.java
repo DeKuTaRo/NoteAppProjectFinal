@@ -18,7 +18,6 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -159,7 +158,9 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             }
         }
 
-        userEmail = StringUlti.getSubEmailName(userEmail);
+        if (userEmail != null) {
+            userEmail = StringUlti.getSubEmailName(userEmail);
+        }
 
         this.databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("NoteItems");
         this.storage = FirebaseStorage.getInstance();
@@ -486,7 +487,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
         if (dialogURL == null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(UpdateActivity.this);
             View view = LayoutInflater.from(this).inflate(R.layout.layout_add_url,
-                    (ViewGroup) findViewById(R.id.layoutAddUrlContainer));
+                    findViewById(R.id.layoutAddUrlContainer));
             builder.setView(view);
             dialogURL = builder.create();
             if (dialogURL.getWindow() != null) {
@@ -553,7 +554,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             intent.putExtra(NoteActivity.KEY_SENDING_NOTE_ITEM, noteItem);
             intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_UPDATE_NOTE);
             finish();
-        };
+        }
 
         // Up hình và video
         if ( (imageNote_update.getDrawable() != null && imageNote_update.getVisibility() != View.GONE ) && videoView_update.getVisibility() != View.GONE ){
@@ -823,9 +824,7 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                         }
                     });
                 })
-                .setNegativeButton("Cancel", (dialogInterface, i) -> {
-                    dialogInterface.dismiss();
-                })
+                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
                 .setNeutralButton("Remove", (dialog, which) -> {
 
                     long noteItemID = noteItem.getCreated_at();

@@ -52,6 +52,8 @@ public class NoteItem implements Serializable {
     @Ignore
     String deleted_at;
 
+    @Ignore
+    long pin_at;
 
     public NoteItem() {
 
@@ -210,6 +212,14 @@ public class NoteItem implements Serializable {
 
     public void setDeleted_at(String deleted_at) {
         this.deleted_at = deleted_at;
+    }
+
+    public long getPin_at() {
+        return pin_at;
+    }
+
+    public void setPin_at(long pin_at) {
+        this.pin_at = pin_at;
     }
 
     @Override

@@ -24,7 +24,6 @@ import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.User;
 import com.example.noteappproject.R;
-import com.example.noteappproject.ReLoginActivity.MainActivity;
 import com.example.noteappproject.databinding.ActivityProfileBinding;
 import com.example.noteappproject.utilities.StringUlti;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,13 +37,14 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import java.util.Objects;
+
 public class ProfileActivity extends AppCompatActivity {
 
     private ActivityProfileBinding binding;
 
     private FirebaseUser user;
     private DatabaseReference reference;
-    private StorageReference storageImageAvatarReference;
 
     private String imageAvatarUriTask;
     private Uri imageAvatarUri;
@@ -62,8 +62,13 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         this.user = FirebaseAuth.getInstance().getCurrentUser();
-        String userEmail = StringUlti.getSubEmailName(this.user.getEmail());
-        this.reference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail);
+        String userEmail = null;
+        if (this.user != null) {
+            userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.user.getEmail()));
+        }
+        if (userEmail != null) {
+            this.reference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail);
+        }
 
         this.reference.child("Account").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -111,44 +116,41 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             this.binding.imageButtonActiveAccount.setActivated(true);
             this.binding.imageButtonActiveAccount.setImageResource(R.drawable.ic_not_activated);
-            this.binding.imageButtonActiveAccount.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // Create the object of
-                    // AlertDialog Builder class
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
-                    // Set Alert Title
-                    builder.setTitle("Active account !");
-                    // Set the message show for the Alert time
-                    builder.setMessage("Your account haven't been activated !");
-                    // Set Cancelable false
-                    // for when the user clicks on the outside
-                    // the Dialog Box then it will remain show
-                    builder.setCancelable(false);
+            this.binding.imageButtonActiveAccount.setOnClickListener(view -> {
+                // Create the object of
+                // AlertDialog Builder class
+                AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                // Set Alert Title
+                builder.setTitle("Active account !");
+                // Set the message show for the Alert time
+                builder.setMessage("Your account haven't been activated !");
+                // Set Cancelable false
+                // for when the user clicks on the outside
+                // the Dialog Box then it will remain show
+                builder.setCancelable(false);
 
-                    // Set the positive button with yes name
-                    // OnClickListener method is use of
-                    // DialogInterface interface.
-                    builder.setPositiveButton( "Send activated email", (dialog, which) -> {
-                        // When the user click yes button
-                        // then app will close
-                        user.sendEmailVerification()
-                                .addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()) {
-                                        Toast.makeText(ProfileActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
-                                        dialog.dismiss();
-                                    }
-                                });
-                    });
+                // Set the positive button with yes name
+                // OnClickListener method is use of
+                // DialogInterface interface.
+                builder.setPositiveButton( "Send activated email", (dialog, which) -> {
+                    // When the user click yes button
+                    // then app will close
+                    user.sendEmailVerification()
+                            .addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    Toast.makeText(ProfileActivity.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
+                                    dialog.dismiss();
+                                }
+                            });
+                });
 
-                    builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
+                builder.setNegativeButton("Later", (dialog, which) -> dialog.dismiss());
 
-                    // Create the Alert dialog
-                    AlertDialog alertDialog = builder.create();
+                // Create the Alert dialog
+                AlertDialog alertDialog = builder.create();
 
-                    // Show the Alert Dialog box
-                    alertDialog.show();
-                }
+                // Show the Alert Dialog box
+                alertDialog.show();
             });
         }
 
@@ -196,12 +198,12 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             });
         } else {
-            storageImageAvatarReference = FirebaseStorage.getInstance().getReference("avatar");
+            StorageReference storageImageAvatarReference = FirebaseStorage.getInstance().getReference("avatar");
             StorageReference imageCoverPhotoReference = storageImageAvatarReference.child(System.currentTimeMillis() +
                     "." + getFileExtension(imageAvatarUri));
             imageCoverPhotoReference.putFile(imageAvatarUri).continueWithTask(task -> {
                 if (!task.isSuccessful()) {
-                    throw task.getException();
+                    throw Objects.requireNonNull(task.getException());
                 }
 
                 return imageCoverPhotoReference.getDownloadUrl();

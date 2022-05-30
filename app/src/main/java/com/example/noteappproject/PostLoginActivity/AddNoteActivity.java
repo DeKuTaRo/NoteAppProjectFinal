@@ -11,13 +11,10 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.util.Patterns;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -70,7 +67,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     private LinearLayout layoutDeleteVideo;
     private Uri imageUri, videoUri;
 
-    public static final int ADD_NOTE = 4;
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 2;
     private static final int REQUEST_CODE_STORAGE_VIDEO_PERMISSION = 3;
 
@@ -79,7 +75,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
-    private FirebaseDatabase rootNode;
     private StorageTask mUploadTask;
 
     private String imageUriTask, videoUriTask;
@@ -176,90 +171,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             case R.id.imageSave:
                 sendDataToDatabase();
                 break;
-            case R.id.label:
-                showMultipleChoiceLabelDialog();
-                break;
         }
-    }
-
-    private void showMultipleChoiceLabelDialog() {
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        String userEmail = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
-
-        if (userEmail == null){
-            return;
-        }
-
-        assert userEmail != null;
-        userEmail = StringUlti.getSubEmailName(userEmail);
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(userEmail).child("Label");
-
-        databaseReference.get().addOnCompleteListener(task -> {
-            if ( !task.isSuccessful() ){
-                return;
-            }
-            String[] listLabel = null;
-
-            String labelListFormat = (String) task.getResult().getValue(String.class);
-            String[] availableLabel = getResources().getStringArray(R.array.available_label);
-
-            if ( labelListFormat == null ){
-                listLabel = availableLabel;
-            } else {
-                String[] labelListFromDatabase = labelListFormat.split("\\|");
-                String[] total = new String[labelListFromDatabase.length + availableLabel.length];
-
-                int i = 0;
-                for (String label: availableLabel){
-                    total[i] = label;
-                    i++;
-                }
-
-                for (String label: labelListFromDatabase){
-                    total[i] = label;
-                    i++;
-                }
-
-                listLabel = total;
-            }
-
-
-
-            List<String> selectedLabel = new ArrayList<>();
-            AlertDialog.Builder builder = new AlertDialog.Builder(AddNoteActivity.this);
-
-            String[] finalListLabel = listLabel;
-            builder.setTitle("Note Label!")
-                    .setMultiChoiceItems(listLabel, null, (dialogInterface, i, b) -> {
-                        if (b) {
-                            selectedLabel.add(finalListLabel[i]);
-                        } else {
-                            selectedLabel.remove(finalListLabel[i]);
-                        }
-                    }).setPositiveButton("Add", (dialogInterface, i) -> {
-                        StringBuilder stringBuilder = new StringBuilder();
-
-                        for ( String label : selectedLabel ){
-                            stringBuilder.append(label);
-                            stringBuilder.append(" | ");
-                        }
-
-                        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("|"));
-                        String formattedLabel = stringBuilder.toString();
-
-                        label.setText(formattedLabel);
-                    })
-
-                    .setNegativeButton("Later", (dialogInterface, i) -> dialogInterface.dismiss()).setNeutralButton("Add more label", (dialogInterface, i) -> {
-                        Intent intent = new Intent(AddNoteActivity.this, LabelManagerActivity.class);
-                        startActivity(intent);
-                    });
-
-            builder.setMessage("Add labels to your note !");
-            builder.setCancelable(false);
-
-           builder.create();
-        });
     }
 
     private void sendDataToDatabase() {
@@ -274,8 +186,8 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             return;
         }
 
-        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
-        rootNode = FirebaseDatabase.getInstance();
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail()));
+        FirebaseDatabase rootNode = FirebaseDatabase.getInstance();
         databaseReference = rootNode.getReference("Users").child(userEmail);
         this.databaseReference.child("Settings").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -344,7 +256,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             intent.putExtra(NoteActivity.KEY_REQUEST_NOTE_OPERATION, NoteActivity.VALUE_REQUEST_ADD_NOTE);
 
             finish();
-        };
+        }
 
         // Up hình và video
         if ( (imageNote.getDrawable() != null && imageNote.getVisibility() != View.GONE ) && videoView.getVisibility() != View.GONE ){
@@ -676,7 +588,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         if (dialogURL == null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(AddNoteActivity.this);
             View view = LayoutInflater.from(this).inflate(R.layout.layout_add_url,
-                    (ViewGroup) findViewById(R.id.layoutAddUrlContainer));
+                    findViewById(R.id.layoutAddUrlContainer));
             builder.setView(view);
             dialogURL = builder.create();
             if (dialogURL.getWindow() != null) {

@@ -1,7 +1,6 @@
 package com.example.noteappproject.AdvancedFunction;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -10,10 +9,6 @@ import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,11 +23,6 @@ import com.example.noteappproject.CustomAdapter.RecyclerViewNoteCustomAdapter;
 import com.example.noteappproject.CustomAdapter.RecyclerViewTrashBinNoteCustomAdapter;
 import com.example.noteappproject.Models.NoteItem;
 import com.example.noteappproject.Models.Settings;
-import com.example.noteappproject.PostLoginActivity.LabelManagerActivity;
-import com.example.noteappproject.PostLoginActivity.NoteActivity;
-import com.example.noteappproject.PostLoginActivity.ProfileActivity;
-import com.example.noteappproject.PostLoginActivity.SettingsActivity;
-import com.example.noteappproject.PostLoginActivity.UpdateActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityTrashBinBinding;
 import com.example.noteappproject.utilities.StringUlti;
@@ -45,6 +35,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,7 +49,7 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
     private int selectedPosition;
 
     private FirebaseAuth mAuth;
-    private String userEmail, timeDeleteDB;
+    private String userEmail, timeDeleteDB = "7";
     private DatabaseReference databaseReference;
 
 
@@ -80,14 +71,10 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
     private void InitializeNoteRecyclerView() {
         this.list_NoteItem = new ArrayList<>();
 
-        this.recyclerViewTrashBinNoteCustomAdapter = new RecyclerViewTrashBinNoteCustomAdapter(this, this.list_NoteItem, new RecyclerViewTrashBinNoteCustomAdapter.IItemClick() {
-
-            @Override
-            public void onLongClick(NoteItem noteItem, CardView cardView, int position) {
-                selectedNote = noteItem;
-                selectedPosition = position;
-                showPopUp(cardView);
-            }
+        this.recyclerViewTrashBinNoteCustomAdapter = new RecyclerViewTrashBinNoteCustomAdapter(this, this.list_NoteItem, (noteItem, cardView, position) -> {
+            selectedNote = noteItem;
+            selectedPosition = position;
+            showPopUp(cardView);
         });
 
     }
@@ -121,26 +108,21 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 NoteItem noteItem = snapshot.getValue(NoteItem.class);
                 if (noteItem != null) {
-                    list_NoteItem.add(0, noteItem);
-                    recyclerViewTrashBinNoteCustomAdapter.notifyItemInserted(0);
+                    long deletedAt = Long.parseLong(noteItem.getDeleted_at());
+
+                    if ( new Date().getTime() - deletedAt >= 1000 * 60 * 60 * 24 * Long.parseLong(timeDeleteDB) ){
+                        databaseReference.child("NoteItemsTrashBin").child(noteItem.getDeleted_at()).removeValue();
+                    } else {
+                        list_NoteItem.add(0, noteItem);
+                        recyclerViewTrashBinNoteCustomAdapter.notifyItemInserted(0);
+                    }
                 }
             }
 
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                NoteItem noteItem = snapshot.getValue(NoteItem.class);
 
-                if (noteItem == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
-                    return;
-                }
-                for (int i = 0; i < list_NoteItem.size(); i++) {
-                    if (noteItem.getLabel().equals(list_NoteItem.get(i).getLabel())) {
-                        list_NoteItem.set(i, noteItem);
-                        recyclerViewTrashBinNoteCustomAdapter.notifyItemChanged(i);
-                        break;
-                    }
-                }
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -150,10 +132,11 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
                 if (noteItem_Deleted == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
                     return;
                 }
+
                 for (int i = 0; i < list_NoteItem.size(); i++) {
-                    if (noteItem_Deleted.getCreated_at() == (list_NoteItem.get(i).getCreated_at())) {
+                    if (noteItem_Deleted.getDeleted_at().equals(list_NoteItem.get(i).getDeleted_at())) {
                         list_NoteItem.remove(list_NoteItem.get(i));
-                        recyclerViewTrashBinNoteCustomAdapter.notifyItemRemoved(i);
+                        recyclerViewTrashBinNoteCustomAdapter.notifyDataSetChanged();
                         break;
                     }
                 }
@@ -161,17 +144,7 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
 
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-//                NoteItem noteItem_Deleted = snapshot.getValue(NoteItem.class);
-//                if (noteItem_Deleted == null || list_NoteItem == null || list_NoteItem.isEmpty()) {
-//                    return;
-//                }
-//                for (int i = 0; i < list_NoteItem.size(); i++) {
-//                    if (noteItem_Deleted.getCreated_at() == list_NoteItem.get(i).getCreated_at()) {
-//                        list_NoteItem.remove(list_NoteItem.get(i));
-//                        recyclerViewTrashBinNoteCustomAdapter.notifyItemRemoved(i);
-//                        break;
-//                    }
-//                }
+
             }
 
             @Override
@@ -188,15 +161,10 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
                 Settings settings = snapshot.getValue(Settings.class);
 
                 if (settings != null) {
-                    timeDeleteDB = settings.getTimeDelete();
+                    timeDeleteDB = settings.getTimeDelete() == null ? "7" : settings.getTimeDelete() ;
                 }
 
-                if (timeDeleteDB.equals("1")) {
-                    binding.messageDelete.setText("Note will delete permanently after " + timeDeleteDB + " day when it was deleted");
-                } else {
-                    binding.messageDelete.setText("Note will delete permanently after " + timeDeleteDB + " days when it was deleted");
-                }
-
+                binding.messageDelete.setText("Note will delete permanently after " + timeDeleteDB + " days when it was deleted");
             }
 
             @Override
@@ -268,15 +236,13 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
     }
 
     private void deleteNote(NoteItem selectedNote) {
-        final long created_at = selectedNote.getCreated_at();
-        this.databaseReference.child("NoteItemsTrashBin").child(String.valueOf(created_at)).removeValue();
+        this.databaseReference.child("NoteItemsTrashBin").child(selectedNote.getDeleted_at()).removeValue();
         Toast.makeText(this, "Delete successfully", Toast.LENGTH_SHORT).show();
     }
 
     private void undoNote(NoteItem selectedNote) {
-        final long created_at = selectedNote.getCreated_at();
-        this.databaseReference.child("NoteItems").child(String.valueOf(created_at)).setValue(selectedNote);
-        this.databaseReference.child("NoteItemsTrashBin").child(String.valueOf(created_at)).removeValue();
+        this.databaseReference.child("NoteItems").child(String.valueOf(selectedNote.getCreated_at())).setValue(selectedNote);
+        this.databaseReference.child("NoteItemsTrashBin").child(selectedNote.getDeleted_at()).removeValue();
         Toast.makeText(this, "Undo successfully", Toast.LENGTH_SHORT).show();
     }
 

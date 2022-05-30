@@ -7,23 +7,18 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.noteappproject.AdvancedFunction.TrashBinActivity;
 import com.example.noteappproject.Models.Settings;
-import com.example.noteappproject.Models.User;
 import com.example.noteappproject.R;
 import com.example.noteappproject.ReLoginActivity.ChangePasswordActivity;
 import com.example.noteappproject.ReLoginActivity.MainActivity;
-import com.example.noteappproject.ReLoginActivity.RegisterUser;
 import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,7 +28,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import java.util.Objects;
 
@@ -65,10 +59,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     protected void onResume() {
         super.onResume();
 
-        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
+        arrayFontSizeAdapter = new ArrayAdapter<>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize.setAdapter(arrayFontSizeAdapter);
 
-        arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
+        arrayFontStyleAdapter = new ArrayAdapter<>(this, R.layout.list_item_font_size, itemFontStyle);
         selectFontStyle.setAdapter(arrayFontStyleAdapter);
 
         this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -117,7 +111,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         selectTimeDelete = findViewById(R.id.selectTimeDelete);
 
 
-        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail()));
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userEmail).child("Settings");
 
@@ -143,35 +137,20 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             }
         });
 
-        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
+        arrayFontSizeAdapter = new ArrayAdapter<>(this, R.layout.list_item_font_size, itemFontSize);
         selectFontSize.setAdapter(arrayFontSizeAdapter);
 
-        selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                fontSizeItem = parent.getItemAtPosition(position).toString();
-            }
-        });
+        selectFontSize.setOnItemClickListener((parent, view, position, id) -> fontSizeItem = parent.getItemAtPosition(position).toString());
 
-        arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
+        arrayFontStyleAdapter = new ArrayAdapter<>(this, R.layout.list_item_font_size, itemFontStyle);
         selectFontStyle.setAdapter(arrayFontStyleAdapter);
 
-        selectFontStyle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                fontStyleItem = parent.getItemAtPosition(position).toString();
-            }
-        });
+        selectFontStyle.setOnItemClickListener((parent, view, position, id) -> fontStyleItem = parent.getItemAtPosition(position).toString());
 
-        arrayTimeDeleteAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemTimeDelete);
+        arrayTimeDeleteAdapter = new ArrayAdapter<>(this, R.layout.list_item_font_size, itemTimeDelete);
         selectTimeDelete.setAdapter(arrayTimeDeleteAdapter);
 
-        selectTimeDelete.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                timeDeleteItem = parent.getItemAtPosition(position).toString();
-            }
-        });
+        selectTimeDelete.setOnItemClickListener((parent, view, position, id) -> timeDeleteItem = parent.getItemAtPosition(position).toString());
 
     }
 
