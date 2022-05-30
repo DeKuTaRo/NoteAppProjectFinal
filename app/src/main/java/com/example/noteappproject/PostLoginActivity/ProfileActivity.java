@@ -180,7 +180,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         String fullName = binding.fullName.getText().toString().trim();
 
-        if (binding.imageAvatar.getDrawable() == null) {
+        if (binding.imageAvatar.getDrawable() == null || imageAvatarUri == null) {
             reference.child("Account").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
