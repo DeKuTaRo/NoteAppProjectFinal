@@ -11,6 +11,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,14 +33,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
+import com.example.noteappproject.Models.Settings;
 import com.example.noteappproject.R;
 import com.example.noteappproject.RoomDatabase.RoomDB;
 import com.example.noteappproject.databinding.ActivityAddNoteBinding;
 import com.example.noteappproject.utilities.StringUlti;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
@@ -60,7 +65,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
     private LinearLayout layoutWebURL;
     private AlertDialog dialogURL;
     private VideoView videoView;
-    private String selectedNoteColor, selectedImagePath, selectedVideoPath;
+    private String selectedNoteColor, fontSizeDB, fontStyleDB;
     private LinearLayout layoutDeleteVideo;
     private Uri imageUri, videoUri;
 
@@ -73,6 +78,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
+    private FirebaseDatabase rootNode;
     private StorageTask mUploadTask;
 
     private String imageUriTask, videoUriTask;
@@ -121,8 +127,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
         videoView = this.binding.videoView;
 
         selectedNoteColor = "#333333";
-        selectedImagePath = "";
-        selectedVideoPath = "";
+
     }
 
     private void setupDatabase() {
@@ -157,7 +162,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             videoView.setVisibility(View.GONE);
             layoutDeleteVideo.setVisibility(View.GONE);
             v.setVisibility(View.GONE);
-            selectedVideoPath = "";
         });
     }
 
@@ -267,6 +271,35 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             label.setError("Label must not be empty");
             label.requestFocus();
             return;
+        }
+
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
+        rootNode = FirebaseDatabase.getInstance();
+        databaseReference = rootNode.getReference("Users").child(userEmail).child("Settings");
+        this.databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
+
+                if (settings != null) {
+                    fontSizeDB = settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(AddNoteActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        DisplayMetrics metrics = textContent.getContext().getResources().getDisplayMetrics();
+        float dp = 20f;
+        float fpixels = metrics.density * dp;
+        int pixels = (int) (fpixels + 0.5f);
+
+        if (fontSizeDB.equals("Small")) {
+            textContent.setTextSize(pixels);
         }
 
         NoteItem noteItem = new NoteItem();

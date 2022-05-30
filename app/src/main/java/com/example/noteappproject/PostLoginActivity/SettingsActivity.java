@@ -51,7 +51,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     private String fontSizeDB, fontStyleDB;
     TextInputLayout layoutFontSize, layoutFontStyle;
     AutoCompleteTextView selectFontSize, selectFontStyle;
+
+    // Small : 10dp, Medium : 20dp, Big : 25dp, Very Big : 30dp
     String[] itemFontSize = {"Small", "Medium", "Big", "Very Big"};
+
     String[] itemFontStyle = {"Normal", "Bold", "Italic", "Underline"};
 
     ArrayAdapter<String> arrayFontSizeAdapter, arrayFontStyleAdapter;
@@ -66,8 +69,26 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
         selectFontStyle.setAdapter(arrayFontStyleAdapter);
 
-        selectFontSize.setText(fontSizeDB);
-        selectFontStyle.setText(fontStyleDB);
+        this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
+
+                if (settings != null) {
+                    fontSizeDB = settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle();
+                }
+                selectFontSize.setText(fontSizeDB);
+                selectFontStyle.setText(fontStyleDB);
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+
 
     }
 
@@ -89,39 +110,13 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         selectFontSize = findViewById(R.id.selectFontSize);
         selectFontStyle = findViewById(R.id.selectFontStyle);
 
-        fontSizeItem = selectFontSize.getText().toString();
-        fontStyleItem = selectFontStyle.getText().toString();
+//        fontSizeItem = selectFontSize.getText().toString();
+//        fontStyleItem = selectFontStyle.getText().toString();
 
-        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+
         final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
         reference = rootNode.getReference("Users").child(userEmail).child("Settings");
-
-        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
-        selectFontSize.setAdapter(arrayFontSizeAdapter);
-
-        selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                fontSizeItem = parent.getItemAtPosition(position).toString();
-                Settings settings = new Settings(fontSizeItem, fontStyleItem);
-                reference.setValue(settings);
-            }
-        });
-
-        arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
-        selectFontStyle.setAdapter(arrayFontStyleAdapter);
-
-        selectFontStyle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                fontStyleItem = parent.getItemAtPosition(position).toString();
-                Settings settings = new Settings(fontSizeItem, fontStyleItem);
-                reference.setValue(settings);
-            }
-        });
-
-        reference.setValue(settings);
 
         this.reference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -132,6 +127,9 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                     fontSizeDB = settings.getFontSize();
                     fontStyleDB = settings.getFontStyle();
                 }
+                selectFontSize.setText(fontSizeDB);
+                selectFontStyle.setText(fontStyleDB);
+
             }
 
             @Override
@@ -140,27 +138,26 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             }
         });
 
-        setValueFont();
+        arrayFontSizeAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontSize);
+        selectFontSize.setAdapter(arrayFontSizeAdapter);
 
-    }
+        selectFontSize.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                fontSizeItem = parent.getItemAtPosition(position).toString();
+            }
+        });
 
-    private void setValueFont() {
-//        this.reference.child(this.userID).child("Settings").addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                Settings settings = snapshot.getValue(Settings.class);
-//
-//                if (settings != null) {
-//                    selectFontSize.setText(settings.getFontSize());
-//                    selectFontStyle.setText(settings.getFontStyle());
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                Toast.makeText(SettingsActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        arrayFontStyleAdapter = new ArrayAdapter<String>(this, R.layout.list_item_font_size, itemFontStyle);
+        selectFontStyle.setAdapter(arrayFontStyleAdapter);
+
+        selectFontStyle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                fontStyleItem = parent.getItemAtPosition(position).toString();
+            }
+        });
+
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -177,5 +174,33 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.my_menu_profile, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.saveProfileBtn :
+                saveSettingsData();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void saveSettingsData() {
+        fontSizeItem = selectFontSize.getText().toString();
+        fontStyleItem = selectFontStyle.getText().toString();
+
+        Settings settings = new Settings(fontSizeItem, fontStyleItem);
+        reference.setValue(settings);
+        Toast.makeText(this, "Settings were applied", Toast.LENGTH_SHORT).show();
+    }
 
 }
