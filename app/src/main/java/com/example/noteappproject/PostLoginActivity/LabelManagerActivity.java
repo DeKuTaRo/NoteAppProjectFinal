@@ -3,6 +3,7 @@ package com.example.noteappproject.PostLoginActivity;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -91,15 +92,13 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
                         return;
                     }
 
-//                    if (!task.getResult().getValue().toString().equals("")) {
-//                        String labelListFormat = Objects.requireNonNull(task.getResult().getValue()).toString();
-//                        String[] labelList = labelListFormat.split("\\|");
-//                        for (String label : labelList){
-//                            noteLabelList.add(new NoteLabel(label));
-//                        }
-//                    }
-
-
+                    if (!task.getResult().getValue().toString().equals("")) {
+                        String labelListFormat = Objects.requireNonNull(task.getResult().getValue()).toString();
+                        String[] labelList = labelListFormat.split("\\|");
+                        for (String label : labelList){
+                            noteLabelList.add(new NoteLabel(label));
+                        }
+                    }
                     recyclerViewLabelCustomAdapter.notifyDataSetChanged();
                     ShowEmptyView();
                 });
@@ -156,19 +155,28 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
 
         this.noteLabelList.add(0, new NoteLabel(label));
         this.recyclerViewLabelCustomAdapter.notifyItemInserted(0);
-
+        this.binding.recycleViewLabelList.scrollToPosition(0);
+        ShowEmptyView();
         saveToFirebase();
+
+        Toast.makeText(LabelManagerActivity.this, "Add label successfully !", Toast.LENGTH_SHORT).show();
+        this.binding.editTextNoteLabel.setText("");
     }
 
     private void saveToFirebase() {
-        StringBuilder stringBuffer = new StringBuilder();
-        for( NoteLabel noteLabel : this.noteLabelList ){
-            stringBuffer.append(noteLabel.getLabelName());
-            stringBuffer.append('|');
-        }
+        String labelSaveToFirebase = "";
 
-        stringBuffer.deleteCharAt(stringBuffer.lastIndexOf("|"));
-        String labelSaveToFirebase = stringBuffer.toString();
+        if ( this.noteLabelList.size() != 0 ){
+            StringBuilder stringBuffer = new StringBuilder();
+            for( NoteLabel noteLabel : this.noteLabelList ){
+                stringBuffer.append(noteLabel.getLabelName());
+                stringBuffer.append('|');
+            }
+
+            stringBuffer.deleteCharAt(stringBuffer.lastIndexOf("|"));
+            labelSaveToFirebase = stringBuffer.toString();
+        }
+        Log.e("TEST", "TEST REMOVE ALL "+ labelSaveToFirebase);
 
         this.databaseReference.setValue(labelSaveToFirebase);
     }
@@ -297,6 +305,8 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
                 }
                 ShowEmptyView();
                 Toast.makeText(LabelManagerActivity.this,"Remove selected label successfully !", Toast.LENGTH_SHORT).show();
+
+                saveToFirebase();
             }
         });
 
@@ -319,6 +329,8 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
             this.recyclerViewLabelCustomAdapter.notifyDataSetChanged();
             ShowEmptyView();
             Toast.makeText(LabelManagerActivity.this,"Remove all note label successfully !", Toast.LENGTH_SHORT).show();
+
+            saveToFirebase();
         });
 
         alertDialog_Builder.setNegativeButton("No", null);

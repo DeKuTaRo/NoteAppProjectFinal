@@ -41,11 +41,6 @@ public class MultipleChoiceDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         DatabaseSetup();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         List<String> selectedLabel = new ArrayList<>();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
