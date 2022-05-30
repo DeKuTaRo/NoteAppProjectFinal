@@ -52,7 +52,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     TextInputLayout layoutFontSize, layoutFontStyle;
     AutoCompleteTextView selectFontSize, selectFontStyle;
 
-    // Small : 10dp, Medium : 20dp, Big : 25dp, Very Big : 30dp
+    // Small : 10dp, Medium : 15dp, Big : 20dp, Very Big : 25dp
     String[] itemFontSize = {"Small", "Medium", "Big", "Very Big"};
 
     String[] itemFontStyle = {"Normal", "Bold", "Italic", "Underline"};

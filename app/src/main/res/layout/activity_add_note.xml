@@ -46,51 +46,51 @@
                 app:layout_constraintTop_toTopOf="@id/imageBack"
                 />
 
-<!--            <EditText-->
-<!--                android:id="@+id/label"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="35dp"-->
-<!--                android:layout_marginTop="15dp"-->
-<!--                android:layout_marginStart="12dp"-->
-<!--                android:layout_marginEnd="12dp"-->
-<!--                android:background="@null"-->
-<!--                android:hint="Note label"-->
-<!--                android:imeOptions="actionDone"-->
-<!--                android:importantForAutofill="no"-->
-<!--                android:includeFontPadding="false"-->
-<!--                android:inputType="text"-->
-<!--                android:textColor="@color/white"-->
-<!--                android:textColorHint="@color/colorRecyclerView"-->
-<!--                android:textSize="16sp"-->
-<!--                app:layout_constraintTop_toBottomOf="@id/imageBack"-->
-<!--                />-->
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutAddLabel"
+            <EditText
+                android:id="@+id/label"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
+                android:layout_marginTop="15dp"
                 android:layout_marginStart="12dp"
-                android:layout_marginTop="10dp"
                 android:layout_marginEnd="12dp"
+                android:background="@null"
                 android:hint="Note label"
-                android:textColorHint="@color/white"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                app:layout_constraintTop_toBottomOf="@id/imageBack">
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:includeFontPadding="false"
+                android:inputType="text"
+                android:textColor="@color/white"
+                android:textColorHint="@color/colorRecyclerView"
+                android:textSize="16sp"
+                app:layout_constraintTop_toBottomOf="@id/imageBack"
+                />
 
-                <AutoCompleteTextView
-                    android:id="@+id/label"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:inputType="none"
-                    android:textSize="16sp"
-                    tools:ignore="LabelFor"
-                    android:background="#353535"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/white"
-                    />
+<!--            <com.google.android.material.textfield.TextInputLayout-->
+<!--                android:id="@+id/layoutAddLabel"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="12dp"-->
+<!--                android:layout_marginTop="10dp"-->
+<!--                android:layout_marginEnd="12dp"-->
+<!--                android:hint="Note label"-->
+<!--                android:textColorHint="@color/white"-->
+<!--                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/imageBack">-->
 
-            </com.google.android.material.textfield.TextInputLayout>
+<!--                <AutoCompleteTextView-->
+<!--                    android:id="@+id/label"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:inputType="none"-->
+<!--                    android:textSize="16sp"-->
+<!--                    tools:ignore="LabelFor"-->
+<!--                    android:background="#353535"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textColorHint="@color/white"-->
+<!--                    />-->
+
+<!--            </com.google.android.material.textfield.TextInputLayout>-->
 
             <TextView
                 android:id="@+id/textDateTime"
@@ -98,10 +98,11 @@
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
                 android:textColor="@color/white"
+                android:layout_marginTop="10dp"
                 android:textSize="10sp"
-                app:layout_constraintEnd_toEndOf="@id/layoutAddLabel"
-                app:layout_constraintStart_toStartOf="@id/layoutAddLabel"
-                app:layout_constraintTop_toBottomOf="@id/layoutAddLabel"/>
+                app:layout_constraintEnd_toEndOf="@id/label"
+                app:layout_constraintStart_toStartOf="@id/label"
+                app:layout_constraintTop_toBottomOf="@id/label"/>
 
             <EditText
                 android:id="@+id/subtitle"
@@ -210,7 +211,7 @@
                 android:minHeight="100dp"
                 android:textColor="@color/white"
                 android:textColorHint="@color/colorRecyclerView"
-                android:textSize="13sp"
+                android:textSize="15sp"
                 app:layout_constraintTop_toBottomOf="@id/layoutWebURL"
                 />
 

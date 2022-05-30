@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Patterns;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -275,8 +276,8 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
 
         final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail());
         rootNode = FirebaseDatabase.getInstance();
-        databaseReference = rootNode.getReference("Users").child(userEmail).child("Settings");
-        this.databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference = rootNode.getReference("Users").child(userEmail);
+        this.databaseReference.child("Settings").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Settings settings = snapshot.getValue(Settings.class);
@@ -284,6 +285,21 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 if (settings != null) {
                     fontSizeDB = settings.getFontSize();
                     fontStyleDB = settings.getFontStyle();
+                }
+
+                switch (fontSizeDB) {
+                    case "Small":
+                        textContent.setTextSize(10);
+                        break;
+                    case "Medium":
+                        textContent.setTextSize(15);
+                        break;
+                    case "Big":
+                        textContent.setTextSize(20);
+                        break;
+                    case "Very Big":
+                        textContent.setTextSize(25);
+                        break;
                 }
             }
 
@@ -293,14 +309,6 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             }
         });
 
-        DisplayMetrics metrics = textContent.getContext().getResources().getDisplayMetrics();
-        float dp = 20f;
-        float fpixels = metrics.density * dp;
-        int pixels = (int) (fpixels + 0.5f);
-
-        if (fontSizeDB.equals("Small")) {
-            textContent.setTextSize(pixels);
-        }
 
         NoteItem noteItem = new NoteItem();
 
@@ -326,7 +334,7 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
             noteItem.setCreated_at(created_at);
 
             final String currentTimeStamp = String.valueOf(created_at);
-            databaseReference.child(currentTimeStamp).setValue(noteItem);
+            databaseReference.child("NoteItems").child(currentTimeStamp).setValue(noteItem);
 
             RoomDB.getInstance(AddNoteActivity.this).noteDAO().insert(noteItem);
             Toast.makeText(AddNoteActivity.this, "Add note successful", Toast.LENGTH_SHORT).show();
