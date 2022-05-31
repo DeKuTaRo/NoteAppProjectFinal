@@ -36,6 +36,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.noteappproject.Models.NoteItem;
+import com.example.noteappproject.Models.Settings;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityUpdateBinding;
 import com.example.noteappproject.utilities.StringUlti;
@@ -81,6 +82,8 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
 
     private String idNote, label, subtitle, textContent, mdate, color, image, video, web;
     private NoteItem noteItem;
+
+    private String fontSizeDB, fontStyleDB;
 
     private NotificationCompat managerCompat;
     private boolean passwordVisible;
@@ -247,6 +250,44 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void setValueIntent() {
+
+        final String userEmail = StringUlti.getSubEmailName(Objects.requireNonNull(Objects.requireNonNull(this.mAuth.getCurrentUser()).getEmail()));
+        FirebaseDatabase rootNode = FirebaseDatabase.getInstance();
+        databaseReference = rootNode.getReference("Users").child(userEmail);
+        this.databaseReference.child("Settings").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Settings settings = snapshot.getValue(Settings.class);
+
+                if (settings != null) {
+                    fontSizeDB = settings.getFontSize() == null ? "Medium" : settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle() == null ? "Normal" : settings.getFontStyle();
+                } else {
+                    fontSizeDB = "Medium";
+                    fontStyleDB = "Normal";
+                }
+
+                switch (fontSizeDB) {
+                    case "Small":
+                        textContent_update.setTextSize(10);
+                        break;
+                    case "Medium":
+                        textContent_update.setTextSize(15);
+                        break;
+                    case "Big":
+                        textContent_update.setTextSize(20);
+                        break;
+                    case "Very Big":
+                        textContent_update.setTextSize(25);
+                        break;
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(UpdateActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         viewSubtitleIndicator_update.setBackgroundColor(Color.parseColor(noteItem.getColor()));
         label_update.setText(noteItem.getLabel());
@@ -590,14 +631,14 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
                             "." + getFileExtension(videoUriUpdate));
 
                     videoReference.putFile(videoUriUpdate).continueWithTask(task1 -> {
-                        if (!task.isSuccessful()) {
-                            throw Objects.requireNonNull(task.getException());
+                        if (!task1.isSuccessful()) {
+                            throw Objects.requireNonNull(task1.getException());
                         }
 
                         return videoReference.getDownloadUrl();
                     }).addOnCompleteListener(task1 -> {
-                        if (task.isSuccessful()) {
-                            videoUriTaskUpdate = task.getResult().toString();
+                        if (task1.isSuccessful()) {
+                            videoUriTaskUpdate = task1.getResult().toString();
                             noteItem.setVideoPath(videoUriTaskUpdate);
 
                             noteItem.setLabel(label);

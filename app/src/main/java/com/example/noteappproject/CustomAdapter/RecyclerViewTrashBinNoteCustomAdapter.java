@@ -112,7 +112,7 @@ public class RecyclerViewTrashBinNoteCustomAdapter extends RecyclerView.Adapter<
                     this.binding_List_View.imageViewPassword.setImageResource(R.drawable.ic_lock);
                 }
 
-                this.binding_List_View.label.setText("Note label: " + noteItem.getLabel());
+                this.binding_List_View.label.setText("Note title: " + noteItem.getLabel());
                 this.binding_List_View.textContent.setText("Note content: " + noteItem.getText_content());
                 this.binding_List_View.timeDelete.setText("Deleted at: " + noteItem.getDeleted_at());
 
@@ -165,7 +165,7 @@ public class RecyclerViewTrashBinNoteCustomAdapter extends RecyclerView.Adapter<
                 }
 
 
-                this.binding_Grid_View.label.setText("Note label: " + noteItem.getLabel());
+                this.binding_Grid_View.label.setText("Note title: " + noteItem.getLabel());
                 this.binding_Grid_View.timeDelete.setText("Deleted at: " + noteItem.getDeleted_at());
 
 

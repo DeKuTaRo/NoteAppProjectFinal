@@ -111,6 +111,8 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
         this.binding.imageBack.setOnClickListener(this);
         this.binding.imageViewClearNoteLabelEditText.setOnClickListener(this);
         this.binding.imageViewSaveLabel.setOnClickListener(this);
+        this.binding.optionMenuItemRemoveAll.setOnClickListener(this);
+        this.binding.optionMenuItemRemoveSelected.setOnClickListener(this);
     }
 
     private void SetUpNoteRecyclerView() {
@@ -142,6 +144,12 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.imageView_SaveLabel:
                 saveLabel();
+                break;
+            case R.id.optionMenu_itemRemoveAll:
+                optionMenuItem_RemoveAll();
+                break;
+            case R.id.optionMenu_itemRemoveSelected:
+                optionMenuItem_RemoveSelected();
                 break;
             default:
                 break;
@@ -257,29 +265,6 @@ public class LabelManagerActivity extends AppCompatActivity implements View.OnCl
         Dialog dialog = alertDialog_Builder.create();
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.label_manager_option_menu,menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    // Set on option item selected
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.optionMenu_itemRemoveAll:
-                optionMenuItem_RemoveAll();
-                break;
-            case R.id.optionMenu_itemRemoveSelected:
-                optionMenuItem_RemoveSelected();
-                break;
-            default:
-                break;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     private void optionMenuItem_RemoveSelected() {

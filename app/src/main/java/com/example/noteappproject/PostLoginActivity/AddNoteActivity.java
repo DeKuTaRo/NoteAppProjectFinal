@@ -288,14 +288,14 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                             "." + getFileExtension(videoUri));
 
                     videoReference.putFile(videoUri).continueWithTask(task1 -> {
-                        if (!task.isSuccessful()) {
-                            throw Objects.requireNonNull(task.getException());
+                        if (!task1.isSuccessful()) {
+                            throw Objects.requireNonNull(task1.getException());
                         }
 
                         return videoReference.getDownloadUrl();
                     }).addOnCompleteListener(task1 -> {
-                        if (task.isSuccessful()) {
-                            videoUriTask = task.getResult().toString();
+                        if (task1.isSuccessful()) {
+                            videoUriTask = task1.getResult().toString();
                             noteItem.setVideoPath(videoUriTask);
 
                             noteItem.setLabel(labelValue);

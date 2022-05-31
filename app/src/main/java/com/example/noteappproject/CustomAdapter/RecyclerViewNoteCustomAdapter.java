@@ -115,7 +115,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                     this.binding_List_View.imageViewPassword.setImageResource(R.drawable.ic_lock);
                 }
 
-                this.binding_List_View.label.setText("Note label: " + noteItem.getLabel());
+                this.binding_List_View.label.setText("Note title: " + noteItem.getLabel());
                 this.binding_List_View.textContent.setText("Note content: " + noteItem.getText_content());
                 this.binding_List_View.timeCreate.setText("Created at: " + noteItem.getDate());
 
@@ -170,7 +170,7 @@ public class RecyclerViewNoteCustomAdapter extends RecyclerView.Adapter<Recycler
                 }
 
 
-                this.binding_Grid_View.label.setText("Note label: " + noteItem.getLabel());
+                this.binding_Grid_View.label.setText("Note title: " + noteItem.getLabel());
                 this.binding_Grid_View.timeCreate.setText("Created at: " + noteItem.getDate());
 
 

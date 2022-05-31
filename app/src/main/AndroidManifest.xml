@@ -28,15 +28,12 @@
         <activity
             android:name=".PostLoginActivity.LabelManagerActivity"
             android:exported="false"
-            android:label="Note"
-            android:theme="@style/Theme.Design.Light"/>
-
+            />
         <activity
             android:name=".AdvancedFunction.TrashBinActivity"
             android:exported="false"
             android:parentActivityName=".PostLoginActivity.NoteActivity"
-            android:label="Trash Bin"
-            android:theme="@style/Theme.Design.Light"/>
+            />
         <activity
             android:name=".PostLoginActivity.UpdateActivity"
             android:exported="false" />
