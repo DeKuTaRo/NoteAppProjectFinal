@@ -196,8 +196,11 @@ public class AddNoteActivity extends AppCompatActivity implements OnClickListene
                 Settings settings = snapshot.getValue(Settings.class);
 
                 if (settings != null) {
-                    fontSizeDB = settings.getFontSize();
-                    fontStyleDB = settings.getFontStyle();
+                    fontSizeDB = settings.getFontSize() == null ? "Medium" : settings.getFontSize();
+                    fontStyleDB = settings.getFontStyle() == null ? "Normal" : settings.getFontStyle();
+                } else {
+                    fontSizeDB = "Medium";
+                    fontStyleDB = "Normal";
                 }
 
                 switch (fontSizeDB) {

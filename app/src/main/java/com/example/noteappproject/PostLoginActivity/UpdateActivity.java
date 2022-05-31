@@ -179,11 +179,19 @@ public class UpdateActivity extends AppCompatActivity implements View.OnClickLis
             idNote = String.valueOf(noteItem.getCreated_at());
             textWebURL_update.setText("");
 
+            Log.e("TEST", idNote);
             databaseReference.child(idNote).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    snapshot.getRef().child("webLink").setValue("");
-                    Toast.makeText(UpdateActivity.this, "Delete successfully", Toast.LENGTH_SHORT).show();
+                    snapshot.getRef().child("webLink").setValue("").addOnCompleteListener(task -> {
+                        if (task.isSuccessful()){
+                            noteItem.setWebLink("");
+                            Toast.makeText(UpdateActivity.this, "Delete successfully", Toast.LENGTH_SHORT).show();
+                        } else {
+
+                            Toast.makeText(UpdateActivity.this, "Delete failure", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
 
                 @Override
