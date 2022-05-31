@@ -2,6 +2,7 @@ package com.example.noteappproject.ReLoginActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.view.View;
@@ -13,9 +14,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.noteappproject.Models.User;
+import com.example.noteappproject.PostLoginActivity.NoteActivity;
 import com.example.noteappproject.R;
 import com.example.noteappproject.databinding.ActivityRegisterUserBinding;
 import com.example.noteappproject.utilities.StringUlti;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
@@ -161,7 +165,27 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
                                     if (task1.isSuccessful()) {
                                         ShowToast("User account has been register successfully !", RegisterUser.this);
                                         progressBar.setVisibility(View.VISIBLE);
-                                        finish();
+
+                                        FirebaseAuth.getInstance().signInWithEmailAndPassword(emailValue, passwordValue)
+                                                .addOnCompleteListener(task2 -> {
+                                                    if (task2.isSuccessful()) {
+                                                        FirebaseUser user1 = FirebaseAuth.getInstance().getCurrentUser();
+
+                                                        if ( user1 != null ){
+                                                            if (user1.isEmailVerified()) {
+                                                                finish();
+                                                            } else {
+                                                                user1.sendEmailVerification()
+                                                                        .addOnCompleteListener(task3 -> {
+                                                                            if (task3.isSuccessful()) {
+                                                                                Toast.makeText(RegisterUser.this, "Please check your mail to active account !", Toast.LENGTH_LONG).show();
+                                                                                finish();
+                                                                            }
+                                                                        });
+                                                            }
+                                                        }
+                                                    }
+                                                });
                                     } else {
                                         ShowToast("Failed to register ! Try again !", RegisterUser.this);
                                         progressBar.setVisibility(View.GONE);

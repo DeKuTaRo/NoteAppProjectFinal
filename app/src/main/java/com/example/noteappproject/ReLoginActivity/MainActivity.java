@@ -92,37 +92,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void userLogin() {
-//        if (!NetworkUtil.isNetworkAvailable(this) || !NetworkUtil.isInternetAvailable()){
-//            // Create the object of
-//            // AlertDialog Builder class
-//            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//            // Set Alert Title
-//            builder.setTitle("Internet require !");
-//            // Set the message show for the Alert time
-//            builder.setMessage("You need to connect to internet first ?");
-//            // Set Cancelable false
-//            // for when the user clicks on the outside
-//            // the Dialog Box then it will remain show
-//            builder.setCancelable(false);
-//
-//            // Set the positive button with yes name
-//            // OnClickListener method is use of
-//            // DialogInterface interface.
-//            builder.setPositiveButton( "Yes", (dialog, which) -> {
-//                // When the user click yes button
-//                // then app will close
-//                dialog.dismiss();
-//            });
-//
-//            // Create the Alert dialog
-//            AlertDialog alertDialog = builder.create();
-//
-//            // Show the Alert Dialog box
-//            alertDialog.show();
-//            return;
-//        }
-
-
         String email = this.binding.emailEditText.getText().toString().trim();
         String password = this.binding.passwordEditText.getText().toString().trim();
 
