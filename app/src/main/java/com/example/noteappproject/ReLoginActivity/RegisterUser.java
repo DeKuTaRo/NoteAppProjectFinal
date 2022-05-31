@@ -128,8 +128,8 @@ public class RegisterUser extends AppCompatActivity implements View.OnClickListe
         }
 
         if (!Patterns.EMAIL_ADDRESS.matcher(emailValue).matches()) {
-            password_input.setError("Please provide valid email");
-            password_input.requestFocus();
+            email_input.setError("Please provide valid email");
+            email_input.requestFocus();
             return;
         }
 

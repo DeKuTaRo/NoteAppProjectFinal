@@ -76,7 +76,6 @@ public class TrashBinActivity extends AppCompatActivity implements PopupMenu.OnM
             selectedPosition = position;
             showPopUp(cardView);
         });
-
     }
 
     private void showPopUp(CardView cardView) {
